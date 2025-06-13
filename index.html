@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>王の食堂 予約フォーム</title>
+  <style>
+    body {
+      font-family: "游ゴシック", sans-serif;
+      background-color: #f9f9f9;
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #b89e00;
+      text-align: center;
+    }
+
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    button {
+      background-color: #b89e00;
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 4px;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a08800;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>王の食卓 予約フォーム</h1>
+  <form action="thankyou.php" method="post">
+    <label for="name">名前：</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="email">メール（学校のgmail）：</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="time">時間：</label>
+    <input type="time" id="time" name="time" required>
+
+    <label for="people">席の数（1～6）：</label>
+    <input type="number" id="people" name="people" min="1" max="6" required>
+
+    <button type="submit">予約</button>
+  </form>
+
+</body>
+</html>
