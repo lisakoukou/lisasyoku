@@ -2,32 +2,44 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>予約完了 - 王の食堂</title>
+  <title>予約完了</title>
   <style>
-    body {font-family: "游ゴシック", sans-serif; background-color: #f9f9f9; padding: 2rem; text-align: center; }
-    h1 {color: #b89e00; font-size: 2rem; }
-    p {font-size: 1.2rem; }
-    .details {background-color: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 2rem; }
-    .back-button {background-color: #b89e00; color: white; padding: 0.75rem; border: none; border-radius: 4px; cursor: pointer; margin-top: 1rem; font-size: 1rem; }
-    .back-button:hover {background-color: #a08800; }
+    body {
+      font-family: "游ゴシック", sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+      padding-top: 100px;
+    }
+
+    h1 {
+      color: #4CAF50;
+    }
+
+    p {
+      font-size: 18px;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: white;
+      background-color: #4CAF50;
+      padding: 10px 20px;
+      border-radius: 5px;
+    }
+
+    a:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
 
-  <h1>予約完了</h1>
-  <p>貴様の食卓の予約は無事完了した！</p>
+  <h1>ご予約ありがとうございます！</h1>
+  <p>内容を確認のうえ、対応させていただきます。</p>
 
-  <!-- 予約詳細 -->
-  <div class="details">
-    <h2>予約内容</h2>
-    <p><strong>名前：</strong><id=name></p>
-    <p><strong>メール：</strong><id=email></p>
-    <p><strong>来訪時刻：</strong><id=time></p>
-    <p><strong>人数：</strong><id=people></p>
-  </div>
-
-  <!-- 戻るボタン -->
-  <button class="back-button" onclick="window.history.back()">前のページに戻る</button>
+  <a href="index.html">トップに戻る</a>
 
 </body>
 </html>
