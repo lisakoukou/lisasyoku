@@ -16,11 +16,11 @@
 
   <h1>予約完了</h1>
   <p>貴様の食卓の予約は無事完了した！</p>
- <p id="displayName"></p>
+ 
   <!-- 予約詳細 -->
   <div class="details">
     <h2>予約内容</h2>
-    <p><strong>名前：</strong></p>
+    <p><strong>名前：<p id="displayName"></strong></p>
     <script>
     const params = new URLSearchParams(window.location.search);
     const name = params.get("name");
