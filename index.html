@@ -2,17 +2,21 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ対応ポイント！ -->
   <title>王の食堂 予約フォーム</title>
   <style>
     body {
       font-family: "游ゴシック", sans-serif;
       background-color: #f9f9f9;
-      padding: 2rem;
+      padding: 1rem;
+      margin: 0;
     }
 
     h1 {
       color: #b89e00;
       text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
     }
 
     form {
@@ -22,22 +26,23 @@
       padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: left;
     }
 
     label {
       display: block;
       margin-top: 1rem;
+      font-size: 1rem;
     }
 
     input, select, textarea {
       width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.25rem;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      font-size: 1rem;
       box-sizing: border-box;
     }
 
-    button, input[type="submit"] {
+    input[type="submit"] {
       background-color: #b89e00;
       color: white;
       padding: 0.75rem;
@@ -49,8 +54,19 @@
       font-size: 1rem;
     }
 
-    button:hover, input[type="submit"]:hover {
+    input[type="submit"]:hover {
       background-color: #a08800;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      input, select, textarea, input[type="submit"] {
+        font-size: 0.95rem;
+        padding: 0.5rem;
+      }
     }
   </style>
 </head>
