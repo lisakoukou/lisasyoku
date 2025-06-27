@@ -53,14 +53,10 @@
 <body>
 
   <h1>王の食卓 予約フォーム</h1>
-　　<form id="myForm" action="yoyakukannryou.html" method="get">
+　　<form action="yoyakukannryou.html" method="get" style="text-align: center;">
     <label for="name">名前：</label>
+      <input type="submit" value="送信">
     </form>
-  <script>
-  window.onload = function() {
-    document.getElementById('myForm').submit();
-  };
-</script>
     <input type="text" id="name" name="name" required>
     <label for="email">メール（学校のgmail）：</label>
     <input type="email" id="email" name="email" required>
