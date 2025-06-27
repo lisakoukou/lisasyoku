@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>王の食堂 予約フォーム</title>
   <style>
     body {
@@ -22,6 +22,7 @@
       padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: left;
     }
 
     label {
@@ -33,19 +34,22 @@
       width: 100%;
       padding: 0.5rem;
       margin-top: 0.25rem;
+      box-sizing: border-box;
     }
 
-    button {
+    button, input[type="submit"] {
       background-color: #b89e00;
       color: white;
       padding: 0.75rem;
       border: none;
       border-radius: 4px;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
       cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
     }
 
-    button:hover {
+    button:hover, input[type="submit"]:hover {
       background-color: #a08800;
     }
   </style>
@@ -53,11 +57,11 @@
 <body>
 
   <h1>王の食卓 予約フォーム</h1>
-　　<form action="yoyakukannryou.html" method="get" style="text-align: center;">
+
+  <form action="yoyakukannryou.html" method="get">
     <label for="name">名前：</label>
-      <input type="submit" value="送信">
-    </form>
     <input type="text" id="name" name="name" required>
+
     <label for="email">メール（学校のgmail）：</label>
     <input type="email" id="email" name="email" required>
 
@@ -67,12 +71,8 @@
     <label for="people">席の数（1～6）：</label>
     <input type="number" id="people" name="people" min="1" max="6" required>
 
-    <button onclick="location.href='yoyakukannryou.html'">予約</button>
+    <input type="submit" value="送信">
   </form>
-
-</body>
-</html>
-
 
 </body>
 </html>
