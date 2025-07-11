@@ -2,62 +2,95 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ対応ポイント！ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>王の食堂 予約フォーム</title>
- <style>
- body {
-  font-family: "游ゴシック", sans-serif;
-  background-color: #fff2e6; /* 薄いベージュ系 */
-  padding: 1rem;
-  margin: 0;
-}
+  <style>
+    body {
+      font-family: "游ゴシック", sans-serif;
+      /* 濃いオレンジ系グラデーション背景 */
+      background: linear-gradient(135deg, #b35d00 0%, #803d00 100%);
+      padding: 1rem;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-h1 {
-  color: #b35d00; /* 濃いオレンジ */
-  text-align: center;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-}
+    form {
+      max-width: 500px;
+      width: 100%;
+      background: #ffcc99; /* 明るめオレンジ */
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(179, 93, 0, 0.6);
+      color: #4a2b00;
+    }
 
-form {
-  max-width: 500px;
-  margin: 0 auto;
-  background: #ffcc99; /* 明るめオレンジ */
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(179,93,0,0.3);
-}
-
-input[type="submit"] {
-  background-color: #b35d00; /* 濃いオレンジ */
-  color: white;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  margin-top: 1.5rem;
-  cursor: pointer;
-  width: 100%;
-  font-size: 1rem;
-  transition: background-color 0.3s;
-}
-
-input[type="submit"]:hover {
-  background-color: #803d00; /* さらに濃いオレンジ */
-}
-
-
-  @media (max-width: 480px) {
     h1 {
-      font-size: 1.5rem;
+      color: #fff3e0; /* 薄いクリーム色で背景に映える */
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+      width: 100%;
+      position: absolute;
+      top: 1rem;
+      left: 0;
     }
 
-    input, select, textarea, input[type="submit"] {
-      font-size: 0.95rem;
-      padding: 0.5rem;
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: #4a2b00;
     }
-  }
-</style>
 
+    input, select, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+      border: 1px solid #cc8a32;
+      border-radius: 4px;
+    }
+
+    input[type="submit"] {
+      background-color: #b35d00; /* 濃いオレンジ */
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 4px;
+      margin-top: 1.5rem;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #803d00; /* さらに濃いオレンジ */
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+        position: static;
+        margin-bottom: 1rem;
+      }
+
+      body {
+        padding: 1rem 0.5rem;
+        align-items: flex-start;
+      }
+
+      input, select, textarea, input[type="submit"] {
+        font-size: 0.95rem;
+        padding: 0.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
