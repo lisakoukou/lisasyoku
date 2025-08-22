@@ -119,21 +119,112 @@
 <script type="module">
   // Firebase SDKの読み込み
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
-  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
 
   // ★★★ Firebaseコンソールでコピーした 'firebaseConfig' のコードをここに貼り付けてください ★★★
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDORmt-zNLR6wuXHsOtdvPLxdxK17o0KyM",
+    authDomain: "girugamekittinn.firebaseapp.com",
+    projectId: "girugamekittinn",
+    storageBucket: "girugamekittinn.firebasestorage.app",
+    messagingSenderId: "819638530525",
+    appId: "1:819638530525:web:a88efab049fe1135738634"
   };
 
   // FirebaseアプリとFirestoreを初期化
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const tableCounts = [7, 10, 1
+  const tableCounts = [7, 10, 1];
+
+  function createSeats() {
+    const leftColumn = document.getElementById("left-column");
+    const middleColumn = document.getElementById("middle-column");
+    const rightColumn = document.getElementById("right-column");
+
+    let totalSeatCount = 0;
+
+    tableCounts.forEach((tableSize, tableIndex) => {
+      const tableBlock = document.createElement("div");
+      tableBlock.className = "table-block";
+
+      const tableElement = document.createElement("div");
+      tableElement.className = "table";
+      tableElement.textContent = `テーブル${tableIndex + 1}`;
+      tableBlock.appendChild(tableElement);
+
+      const seatRow = document.createElement("div");
+      seatRow.className = "seat-row";
+      
+      for (let i = 0; i < tableSize; i++) {
+        const seat = document.createElement("div");
+        seat.className = "seat";
+        seat.id = `seat-${totalSeatCount}`;
+        seat.textContent = `${totalSeatCount + 1}`;
+        seatRow.appendChild(seat);
+        totalSeatCount++;
+      }
+
+      tableBlock.appendChild(seatRow);
+
+      if (tableIndex === 0) {
+        leftColumn.appendChild(tableBlock);
+      } else if (tableIndex === 1) {
+        middleColumn.appendChild(tableBlock);
+      } else {
+        rightColumn.appendChild(tableBlock);
+      }
+    });
+  }
+
+  createSeats();
+
+  // Firestoreからデータを読み込み、画面を更新する
+  const docRef = doc(db, "tables", "current_state");
+
+  onSnapshot(docRef, (doc) => {
+    if (doc.exists()) {
+      const seatData = doc.data().data;
+      if (seatData) {
+        const allSeats = document.querySelectorAll(".seat");
+        allSeats.forEach((seat, index) => {
+          if (seatData[index] && seatData[index].isOccupied) {
+            seat.classList.add("occupied");
+          } else {
+            seat.classList.remove("occupied");
+          }
+        });
+      }
+    } else {
+      console.log("No such document! Creating initial data...");
+      setDoc(docRef, { data: Array(tableCounts.reduce((a, b) => a + b, 0)).fill({ isOccupied: false }) });
+    }
+  }, (error) => {
+    console.error("Error getting real-time data: ", error);
+  });
+
+  // 席をクリックした際に、予約状況をFirestoreに書き込む
+  document.addEventListener("DOMContentLoaded", () => {
+    const allSeats = document.querySelectorAll(".seat");
+    allSeats.forEach((seat, index) => {
+      seat.addEventListener("click", async () => {
+        const docRef = doc(db, "tables", "current_state");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const currentData = docSnap.data().data;
+          const isOccupied = currentData[index].isOccupied;
+          currentData[index].isOccupied = !isOccupied;
+
+          await setDoc(docRef, { data: currentData });
+        } else {
+          console.error("Document does not exist. Please check your Firestore path.");
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
 
