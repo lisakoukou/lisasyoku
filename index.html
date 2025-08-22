@@ -99,16 +99,15 @@
     }
   </style>
 </head>
+
 <body>
 
 <h1>食堂予約（明るい配色＋椅子黒色版）</h1>
 
-<!-- ページ移動ボタン -->
 <a href="yoyaku.html" target="_blank" class="link-button">
   食堂予約サイトへ移動
 </a>
 
-<!-- 席の配置 -->
 <div class="columns">
   <div class="column" id="left-column"></div>
   <div class="column" id="middle-column"></div>
@@ -117,109 +116,24 @@
 
 <div id="limit-msg" class="limit-msg">最大6席までしか選べません</div>
 
-<script>
-  const tableCounts = [7, 10, 12];
-  const totalTables = tableCounts.reduce((a, b) => a + b, 0);
+<script type="module">
+  // Firebase SDKの読み込み
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
 
-  const seatCounts = Array.from({ length: totalTables }, (_, i) =>
-    i === totalTables - 1 ? 3 : 6
-  );
-  const tables = seatCounts.map(count => Array(count).fill(false));
+  // ★★★ Firebaseコンソールでコピーした 'firebaseConfig' のコードをここに貼り付けてください ★★★
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-  function countTotalOccupiedSeats() {
-    return tables.flat().filter(Boolean).length;
-  }
+  // FirebaseアプリとFirestoreを初期化
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  function createSeat(seatIndex, tableNum) {
-    const seat = document.createElement("div");
-    seat.className = "seat" + (tables[tableNum][seatIndex] ? " occupied" : "");
-    seat.innerText = seatIndex + 1;
-    seat.onclick = () => {
-      if (!tables[tableNum][seatIndex] && countTotalOccupiedSeats() >= 6) {
-        document.getElementById("limit-msg").style.display = "block";
-        return;
-      }
-      tables[tableNum][seatIndex] = !tables[tableNum][seatIndex];
-      document.getElementById("limit-msg").style.display = "none";
-      renderTables();
-    };
-    return seat;
-  }
-
-  function createTableBlock(tableNum) {
-    const block = document.createElement("div");
-    block.className = "table-block";
-
-    const seatCount = tables[tableNum].length;
-
-    if (tableNum === totalTables - 1) {
-      const seatsTop = document.createElement("div");
-      seatsTop.className = "seat-row";
-
-      for (let i = 0; i < seatCount; i++) {
-        seatsTop.appendChild(createSeat(i, tableNum));
-      }
-
-      const table = document.createElement("div");
-      table.className = "table";
-      table.innerText = `机 ${tableNum + 1}`;
-
-      block.appendChild(seatsTop);
-      block.appendChild(table);
-      return block;
-    }
-
-    const seatsTop = document.createElement("div");
-    seatsTop.className = "seat-row";
-    const seatsBottom = document.createElement("div");
-    seatsBottom.className = "seat-row";
-
-    const half = Math.ceil(seatCount / 2);
-
-    for (let i = 0; i < half; i++) {
-      seatsTop.appendChild(createSeat(i, tableNum));
-    }
-
-    const table = document.createElement("div");
-    table.className = "table";
-    table.innerText = `机 ${tableNum + 1}`;
-
-    for (let i = half; i < seatCount; i++) {
-      seatsBottom.appendChild(createSeat(i, tableNum));
-    }
-
-    block.appendChild(seatsTop);
-    block.appendChild(table);
-    if (seatCount > half) block.appendChild(seatsBottom);
-    return block;
-  }
-
-  function renderTables() {
-    const left = document.getElementById("left-column");
-    const middle = document.getElementById("middle-column");
-    const right = document.getElementById("right-column");
-
-    left.innerHTML = "";
-    middle.innerHTML = "";
-    right.innerHTML = "";
-
-    let index = 0;
-
-    for (let i = 0; i < tableCounts[0]; i++) {
-      left.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[1]; i++) {
-      middle.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[2]; i++) {
-      right.appendChild(createTableBlock(index++));
-    }
-  }
-
-  renderTables();
-</script>
-
-</body>
-</html>
-
+  const tableCounts = [7, 10, 1
 
