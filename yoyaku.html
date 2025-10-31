@@ -25,6 +25,7 @@
       border-radius: 8px;
       box-shadow: 0 0 15px rgba(179, 93, 0, 0.6);
       color: #4a2b00;
+      z-index: 10; /* h1の上に配置 */
     }
 
     h1 {
@@ -73,6 +74,26 @@
       background-color: #803d00; /* さらに濃いオレンジ */
     }
 
+    #message-box {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 4px;
+        color: white;
+        background-color: #2ecc71; /* Success Green */
+        text-align: center;
+        display: none;
+    }
+    
+    .back-button {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        color: #b35d00;
+        text-decoration: underline;
+        font-weight: bold;
+    }
+
+
     @media (max-width: 480px) {
       h1 {
         font-size: 1.5rem;
@@ -96,21 +117,87 @@
 
   <h1>王の食卓 予約フォーム</h1>
 
-  <form action="yoyakukannryou.html" method="get">
+  <!-- 席数は不要になったため、フォームから削除しました -->
+  <form id="reservation-form">
     <label for="name">名前：</label>
     <input type="text" id="name" name="name" required>
 
     <label for="email">メール（学校のgmail）：</label>
     <input type="email" id="email" name="email" required>
 
-    <label for="time">時間：</label>
+    <label for="time">予約したい時間：</label>
     <input type="time" id="time" name="time" required>
+    
+    <div id="message-box"></div>
 
-    <label for="people">席の数（1～6）：</label>
-    <input type="number" id="people" name="people" min="1" max="6" required>
-
-    <input type="submit" value="予約">
+    <input type="submit" value="予約情報を保存して席を選ぶ">
+    
+    <a href="shokudo_reservation.html" class="back-button">
+        席マップに戻る
+    </a>
   </form>
+  
+  <script>
+    // ユーザーIDの取得/生成 (shokudo_reservation.htmlと共通)
+    const getUserId = () => {
+        let userId = localStorage.getItem('currentUserId');
+        if (!userId) {
+            userId = crypto.randomUUID();
+            localStorage.setItem('currentUserId', userId);
+        }
+        return userId;
+    };
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('reservation-form');
+        const messageBox = document.getElementById('message-box');
+        getUserId(); // ページロード時にユーザーIDを確保
+        
+        // localStorageに情報があればフォームに初期値をセット
+        const existingDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
+        if (existingDetails) {
+            document.getElementById('name').value = existingDetails.name || '';
+            document.getElementById('email').value = existingDetails.email || '';
+            document.getElementById('time').value = existingDetails.time || '';
+        }
+        
+        // フォーム送信時の処理
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const time = document.getElementById('time').value;
+            
+            if (!name || !email || !time) {
+                messageBox.style.backgroundColor = '#e74c3c';
+                messageBox.textContent = 'すべてのフィールドを入力してください。';
+                messageBox.style.display = 'block';
+                return;
+            }
+            
+            const userDetails = {
+                name: name,
+                email: email,
+                time: time
+            };
+            
+            // ユーザーの詳細情報をlocalStorageに保存
+            localStorage.setItem('currentUserDetails', JSON.stringify(userDetails));
+            
+            messageBox.style.backgroundColor = '#2ecc71';
+            messageBox.textContent = '予約者情報を保存しました。席マップに戻って席を選んでください。';
+            messageBox.style.display = 'block';
+            
+            // 保存後、席マップに自動遷移
+            setTimeout(() => {
+                window.location.href = 'shokudo_reservation.html';
+            }, 1500);
+        });
+    });
+  </script>
 
 </body>
 </html>
+
+
