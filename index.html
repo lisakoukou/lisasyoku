@@ -4,10 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>食堂予約（リアルタイム・トランザクション版）</title>
-  
-  <!-- Firebase SDKのCDN (v8.10.0を使用) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <style>
     /* Tailwind CSSの代わりに提供されたCSSを引き継ぎつつ、視覚的に調整 */
@@ -163,6 +159,16 @@
         font-size: 18px;
         color: #5bc0eb;
     }
+    
+    /* ローディングスピナーのアニメーション */
+    @keyframes rotate {
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes dash {
+        0% { stroke-dashoffset: 251.2; }
+        50% { stroke-dashoffset: 62.8; transform: rotate(135deg); }
+        100% { stroke-dashoffset: 251.2; transform: rotate(360deg); }
+    }
 
     /* モバイル最適化 */
     @media (max-width: 768px) {
@@ -183,7 +189,8 @@
 <div id="loading-overlay">
     <!-- ローディングスピナー（SVG） -->
     <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" style="background: none;">
-        <circle cx="50" cy="50" r="40" stroke="#5bc0eb" stroke-width="8" fill="none" stroke-linecap="round" style="stroke-dasharray: 251.2; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite, rotate 2s linear infinite;"></circle>
+        <circle cx="50" cy="50" r="40" stroke="#5bc0eb" stroke-width="8" fill="none" stroke-linecap="round" 
+        style="stroke-dasharray: 251.2; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite, rotate 2s linear infinite;"></circle>
     </svg>
     <p>Firebaseに接続中...</p>
 </div>
@@ -201,12 +208,16 @@
 
 <div id="limit-msg" class="limit-msg">最大6席までしか選べません</div>
 
-<script>
-  // =================================================================
-  // 1. Firebase 初期化と設定
-  // =================================================================
+<!-- ================================================================= -->
+<!-- 🌟 モジュラーSDK (v12.5.0) を使用したメインスクリプト -->
+<!-- ================================================================= -->
+<script type="module">
+  // 1. FirebaseモジュールをCDN経由でインポート
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-analytics.js";
+  import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-  // ユーザー提供のFirebase設定情報
+  // 2. Firebase設定情報
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
     authDomain: "lisasyokudo.firebaseapp.com",
@@ -218,18 +229,18 @@
     measurementId: "G-HBNXQBQ4PR"
   };
 
-  // Firebaseの初期化
-  const app = firebase.initializeApp(firebaseConfig);
-  // Realtime Databaseへの参照を取得
-  const db = firebase.database();
+  // 3. Firebase初期化とDatabase参照の取得（モジュラー形式）
+  const app = initializeApp(firebaseConfig);
+  // getAnalytics(app); // Analyticsは今回は省略（アプリロジックに不要なため）
+  
+  const db = getDatabase(app);
   // 'seats'というデータベースパスを参照
-  const seatsRef = db.ref('seats'); 
+  const seatsRef = ref(db, 'seats'); 
   
   // =================================================================
-  // 2. 予約ロジックとデータ管理
+  // 4. 予約ロジックとデータ管理
   // =================================================================
 
-  // テーブル構成データ（合計 7+10+12 = 29卓）
   const tableCounts = [7, 10, 12];
   const totalTables = tableCounts.reduce((a, b) => a + b, 0); // 29
 
@@ -237,21 +248,19 @@
   const seatCounts = Array.from({ length: totalTables }, (_, i) =>
     i === totalTables - 1 ? 3 : 6
   );
-  // 全席数の合計を計算 (28 * 6 + 3 = 168 + 3 = 171)
+  // 全席数の合計
   const TOTAL_CAPACITY = seatCounts.reduce((a, b) => a + b, 0); 
   const MAX_RESERVATION_PER_USER = 6;
 
-  let seatsData = {}; // Firebaseから取得した全席の状態 (例: {"T1-S1": true, "T1-S2": false, ...})
+  let seatsData = {}; // Firebaseから取得した全席の状態 
 
   // ヘルパー: テーブル番号と席番号からデータベースキーを生成
   function getSeatKey(tableNum, seatIndex) {
-    // テーブル番号は1から、席番号は1から
     return `T${tableNum + 1}-S${seatIndex + 1}`; 
   }
 
   // 現在の予約済み席数をカウント
   function countTotalOccupiedSeats() {
-    // seatsDataオブジェクトの値から true の数を数える
     return Object.values(seatsData).filter(status => status === true).length;
   }
 
@@ -266,7 +275,7 @@
   function toggleSeatStatus(tableNum, seatIndex) {
     const seatKey = getSeatKey(tableNum, seatIndex);
     const isLocalOccupied = seatsData[seatKey] === true; // クリック時のローカルな予約状況
-
+    
     // 予約を試みている場合（キャンセルではない場合）のローカルでの最大数チェック
     if (!isLocalOccupied && countTotalOccupiedSeats() >= MAX_RESERVATION_PER_USER) {
       document.getElementById("limit-msg").style.display = "block";
@@ -274,45 +283,42 @@
     }
     document.getElementById("limit-msg").style.display = "none";
 
-    // トランザクション処理を開始
-    seatsRef.child(seatKey).transaction((currentValue) => {
-      // currentValue はトランザクション開始時のDB上の値
-      const isDbOccupied = currentValue === true; // DB上の予約状況
+    // **********************************************
+    // ** runTransaction (モジュラーAPI) の実装 **
+    // **********************************************
+    const seatRef = ref(db, 'seats/' + seatKey);
+
+    runTransaction(seatRef, (currentData) => {
+      // currentData はトランザクション開始時のDB上の値
+      const isDbOccupied = currentData === true; // DB上の予約状況
       
       if (isLocalOccupied) { // ユーザーが**キャンセル**を試みている場合
-        // DB上で予約済みの状態であれば、falseに戻す
         if (isDbOccupied) {
           return false; // DBの値をfalseに更新
         } else {
-          // 既に誰かにキャンセルされていた場合
-          return; // 変更せずトランザクションを中断
+          return; // undefined を返すとトランザクションを中断
         }
       } else { // ユーザーが**予約**を試みている場合
-        // DB上で未予約（falseまたはnull）であれば、trueに更新
         if (!isDbOccupied) {
-          // 予約成功
-          return true; 
+          return true; // DBの値をtrueに更新（予約成功）
         } else {
           // 🚨 競合が発生！他のユーザーが先に予約した
-          alert("🚨 競合エラー: すみません、この席はちょうど他の人に予約されました。別の席を選んでください。");
+          // トランザクションを中断するが、ユーザーにはアラートで通知
+          setTimeout(() => {
+              alert("🚨 競合エラー: すみません、この席はちょうど他の人に予約されました。別の席を選んでください。");
+          }, 0); 
           return; // 変更せずトランザクションを中断（二重予約を防止）
         }
       }
-    }, (error, committed, snapshot) => {
-      if (error) {
-        console.error("Transaction failed: ", error);
-        alert("予約処理中にエラーが発生しました。インターネット接続を確認してください。");
-      } else if (!committed) {
-        console.log("Transaction aborted (e.g., already reserved or canceled by another user)");
-      } else {
-        console.log("Seat status successfully updated.");
-      }
-      // トランザクションの結果は、on('value')リスナーが自動的にUIに反映します
+    }).catch(error => {
+      // runTransaction自体が失敗した場合（ネットワークエラーなど）
+      console.error("Transaction failed: ", error);
+      alert("予約処理中にエラーが発生しました。インターネット接続を確認してください。");
     });
   }
 
   // =================================================================
-  // 3. UIレンダリング
+  // 5. UIレンダリング
   // =================================================================
   
   // 席のDOM要素を作成
@@ -329,7 +335,7 @@
     return seat;
   }
 
-  // テーブルブロックのDOM要素を作成
+  // テーブルブロックのDOM要素を作成 (変更なし)
   function createTableBlock(tableNum) {
     const block = document.createElement("div");
     block.className = "table-block";
@@ -340,15 +346,12 @@
     if (tableNum === totalTables - 1 && seatCount === 3) {
       const seatsTop = document.createElement("div");
       seatsTop.className = "seat-row";
-
       for (let i = 0; i < seatCount; i++) {
         seatsTop.appendChild(createSeat(i, tableNum));
       }
-
       const table = document.createElement("div");
       table.className = "table";
       table.innerText = `机 ${tableNum + 1} (3席)`;
-
       block.appendChild(seatsTop);
       block.appendChild(table);
       return block;
@@ -359,28 +362,24 @@
     seatsTop.className = "seat-row";
     const seatsBottom = document.createElement("div");
     seatsBottom.className = "seat-row";
-
     const half = Math.ceil(seatCount / 2);
 
     for (let i = 0; i < half; i++) {
       seatsTop.appendChild(createSeat(i, tableNum));
     }
-
     const table = document.createElement("div");
     table.className = "table";
     table.innerText = `机 ${tableNum + 1} (6席)`;
-
     for (let i = half; i < seatCount; i++) {
       seatsBottom.appendChild(createSeat(i, tableNum));
     }
-
     block.appendChild(seatsTop);
     block.appendChild(table);
     if (seatCount > half) block.appendChild(seatsBottom);
     return block;
   }
 
-  // 画面全体のテーブルを再描画
+  // 画面全体のテーブルを再描画 (変更なし)
   function renderTables() {
     const left = document.getElementById("left-column");
     const middle = document.getElementById("middle-column");
@@ -392,29 +391,25 @@
 
     let index = 0;
 
-    // 左カラム
     for (let i = 0; i < tableCounts[0]; i++) {
       left.appendChild(createTableBlock(index++));
     }
-    // 中央カラム
     for (let i = 0; i < tableCounts[1]; i++) {
       middle.appendChild(createTableBlock(index++));
     }
-    // 右カラム
     for (let i = 0; i < tableCounts[2]; i++) {
       right.appendChild(createTableBlock(index++));
     }
     
-    // 予約数の表示を更新
     updateCapacityDisplay();
   }
   
   // =================================================================
-  // 4. Firebaseデータリスナー
+  // 6. Firebaseデータリスナー
   // =================================================================
 
-  // Firebase Realtime Databaseのデータ変更を監視
-  seatsRef.on('value', (snapshot) => {
+  // onValue (モジュラーAPI) を使用してデータ変更を監視
+  onValue(seatsRef, (snapshot) => {
     // ローディング画面を非表示にする
     document.getElementById("loading-overlay").style.display = 'none';
 
