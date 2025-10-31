@@ -25,7 +25,7 @@
       border-radius: 8px;
       box-shadow: 0 0 15px rgba(179, 93, 0, 0.6);
       color: #4a2b00;
-      z-index: 10; /* h1の上に配置 */
+      z-index: 10;
     }
 
     h1 {
@@ -117,7 +117,6 @@
 
   <h1>王の食卓 予約フォーム</h1>
 
-  <!-- 席数は不要になったため、フォームから削除しました -->
   <form id="reservation-form">
     <label for="name">名前：</label>
     <input type="text" id="name" name="name" required>
@@ -130,15 +129,16 @@
     
     <div id="message-box"></div>
 
-    <input type="submit" value="予約情報を保存して席を選ぶ">
+    <input type="submit" value="予約情報を保存して席マップへ">
     
-    <a href="shokudo_reservation.html" class="back-button">
+    <!-- リンクを index.html (席マップ) に変更 -->
+    <a href="index.html" class="back-button">
         席マップに戻る
     </a>
   </form>
   
   <script>
-    // ユーザーIDの取得/生成 (shokudo_reservation.htmlと共通)
+    // ユーザーIDの取得/生成 (index.htmlと共通)
     const getUserId = () => {
         let userId = localStorage.getItem('currentUserId');
         if (!userId) {
@@ -189,9 +189,9 @@
             messageBox.textContent = '予約者情報を保存しました。席マップに戻って席を選んでください。';
             messageBox.style.display = 'block';
             
-            // 保存後、席マップに自動遷移
+            // 保存後、席マップ(index.html)に自動遷移
             setTimeout(() => {
-                window.location.href = 'shokudo_reservation.html';
+                window.location.href = 'index.html';
             }, 1500);
         });
     });
