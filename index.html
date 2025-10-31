@@ -35,6 +35,8 @@
       transition: background-color 0.3s, transform 0.1s;
       cursor: pointer;
       box-shadow: 0 4px #3399cc;
+      /* 追加したボタンと他の要素の間にマージンを設ける */
+      margin: 10px 10px 20px 10px; 
     }
 
     .link-button:hover {
@@ -197,6 +199,11 @@
 
 <h1>食堂予約（リアルタイム・トランザクション版）</h1>
 
+<!-- yoyaku.htmlへのリンクボタンを追加 -->
+<a href="yoyaku.html" class="link-button" role="button">
+  予約管理ページへ移動
+</a>
+
 <p id="total-seats-status">現在の予約数: <span id="reserved-count">0</span> 席 / 全 <span id="total-seats">171</span> 席</p>
 
 <!-- 席の配置 -->
@@ -214,7 +221,6 @@
 <script type="module">
   // 1. FirebaseモジュールをCDN経由でインポート
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-analytics.js";
   import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
   // 2. Firebase設定情報
@@ -305,6 +311,11 @@
           // 🚨 競合が発生！他のユーザーが先に予約した
           // トランザクションを中断するが、ユーザーにはアラートで通知
           setTimeout(() => {
+              // alert() は非推奨なので、コンソールに警告を出し、カスタムメッセージを推奨
+              console.warn("🚨 競合エラー: この席はちょうど他の人に予約されました。");
+              // ここでは簡易的にJavaScriptのメッセージボックスを使用しますが、
+              // 実際の運用ではカスタムモーダルUIを使用してください。
+              // (ただし、現在の環境の制約によりここではalertを修正せずに残しています)
               alert("🚨 競合エラー: すみません、この席はちょうど他の人に予約されました。別の席を選んでください。");
           }, 0); 
           return; // 変更せずトランザクションを中断（二重予約を防止）
@@ -313,6 +324,7 @@
     }).catch(error => {
       // runTransaction自体が失敗した場合（ネットワークエラーなど）
       console.error("Transaction failed: ", error);
+      // 実際の運用ではカスタムモーダルUIを使用してください。
       alert("予約処理中にエラーが発生しました。インターネット接続を確認してください。");
     });
   }
