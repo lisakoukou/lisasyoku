@@ -3,111 +3,194 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>食堂予約（明るい配色＋椅子黒色版）</title>
+  <title>食堂予約（リアルタイム・トランザクション版）</title>
+  
+  <!-- Firebase SDKのCDN (v8.10.0を使用) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
   <style>
+    /* Tailwind CSSの代わりに提供されたCSSを引き継ぎつつ、視覚的に調整 */
     body {
-      font-family: sans-serif;
+      font-family: 'Inter', sans-serif;
       padding: 20px;
       text-align: center;
       background-color: #f9f7f1; /* 明るいクリーム色 */
       overflow-x: auto;
+      min-height: 100vh;
     }
 
     h1 {
-      font-size: 24px;
-      margin-bottom: 10px;
+      font-size: 28px;
+      margin-bottom: 20px;
       color: #333;
+      font-weight: 700;
     }
 
     .link-button {
       display: inline-block;
       margin-bottom: 20px;
-      padding: 10px 20px;
+      padding: 12px 25px;
       background-color: #5bc0eb; /* スカイブルー */
       color: white;
-      border-radius: 8px;
+      border-radius: 10px;
       text-decoration: none;
       font-weight: bold;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s, transform 0.1s;
       cursor: pointer;
+      box-shadow: 0 4px #3399cc;
     }
 
     .link-button:hover {
       background-color: #3399cc; /* 濃いめブルー */
+      transform: translateY(1px);
+    }
+    
+    .link-button:active {
+      box-shadow: 0 2px #3399cc;
+      transform: translateY(3px);
     }
 
     .columns {
       display: flex;
+      flex-wrap: wrap; /* モバイル対応 */
       justify-content: center;
-      gap: 40px;
+      gap: 30px;
+      padding-bottom: 50px;
     }
 
     .column {
       display: flex;
       flex-direction: column;
       gap: 30px;
+      min-width: 250px; /* カラムの最小幅 */
     }
 
     .table-block {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
 
     .seat-row {
       display: flex;
-      gap: 6px;
+      gap: 8px;
+      justify-content: center;
     }
 
     .seat {
-      width: 30px;
-      height: 30px;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
       background-color: #000000; /* 椅子未選択：黒 */
-      color: #ffffff; /* 椅子中の文字色：白 */
+      color: #ffffff;
       font-weight: bold;
       font-size: 14px;
-      line-height: 30px;
+      line-height: 35px;
       text-align: center;
       cursor: pointer;
       user-select: none;
+      transition: background-color 0.3s, transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .seat:hover:not(.occupied) {
+        background-color: #333;
+        transform: scale(1.05);
     }
 
     .seat.occupied {
       background-color: #90ee90; /* 椅子選択済み：ライトグリーン */
-      color: #000000; /* 選択時は文字黒のほうが見やすいので変更 */
+      color: #000000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
+    .seat.occupied:hover {
+        background-color: #76e876;
+        transform: scale(1.05);
+    }
+
+
     .table {
-      width: 100px;
-      height: 40px;
+      width: 120px;
+      height: 45px;
       background-color: #c4c4c4; /* やさしいグレー */
       border: 2px solid #999;
-      border-radius: 6px;
-      line-height: 40px;
+      border-radius: 8px;
+      line-height: 45px;
       font-weight: bold;
       color: #333;
       user-select: none;
+      margin: 5px 0;
+    }
+
+    .limit-msg, .status-msg {
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 10px;
     }
 
     .limit-msg {
-      color: #e74c3c; /* 鮮やかな赤 */
-      margin-top: 10px;
+      color: #c0392b; /* 濃い赤 */
+      background-color: #fbecec;
+      border: 1px solid #e74c3c;
       display: none;
-      font-weight: bold;
+    }
+
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    #loading-overlay p {
+        margin-top: 15px;
+        font-size: 18px;
+        color: #5bc0eb;
+    }
+
+    /* モバイル最適化 */
+    @media (max-width: 768px) {
+        .columns {
+            flex-direction: column;
+            gap: 20px;
+        }
+        .column {
+            min-width: 90%;
+            margin: 0 auto;
+        }
     }
   </style>
 </head>
 
 <body>
 
-<h1>食堂予約（明るい配色＋椅子黒色版）</h1>
+<div id="loading-overlay">
+    <!-- ローディングスピナー（SVG） -->
+    <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" style="background: none;">
+        <circle cx="50" cy="50" r="40" stroke="#5bc0eb" stroke-width="8" fill="none" stroke-linecap="round" style="stroke-dasharray: 251.2; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite, rotate 2s linear infinite;"></circle>
+    </svg>
+    <p>Firebaseに接続中...</p>
+</div>
 
-<!-- ページ移動ボタン -->
-<a href="yoyaku.html" target="_blank" class="link-button">
-  食堂予約サイトへ移動
-</a>
+<h1>食堂予約（リアルタイム・トランザクション版）</h1>
+
+<p id="total-seats-status">現在の予約数: <span id="reserved-count">0</span> 席 / 全 <span id="total-seats">171</span> 席</p>
 
 <!-- 席の配置 -->
 <div class="columns">
@@ -119,41 +202,142 @@
 <div id="limit-msg" class="limit-msg">最大6席までしか選べません</div>
 
 <script>
-  const tableCounts = [7, 10, 12];
-  const totalTables = tableCounts.reduce((a, b) => a + b, 0);
+  // =================================================================
+  // 1. Firebase 初期化と設定
+  // =================================================================
 
+  // ユーザー提供のFirebase設定情報
+  const firebaseConfig = {
+    apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
+    authDomain: "lisasyokudo.firebaseapp.com",
+    databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "lisasyokudo",
+    storageBucket: "lisasyokudo.firebasestorage.app",
+    messagingSenderId: "94391681633",
+    appId: "1:94391681633:web:515d6d17c9567e153b2020",
+    measurementId: "G-HBNXQBQ4PR"
+  };
+
+  // Firebaseの初期化
+  const app = firebase.initializeApp(firebaseConfig);
+  // Realtime Databaseへの参照を取得
+  const db = firebase.database();
+  // 'seats'というデータベースパスを参照
+  const seatsRef = db.ref('seats'); 
+  
+  // =================================================================
+  // 2. 予約ロジックとデータ管理
+  // =================================================================
+
+  // テーブル構成データ（合計 7+10+12 = 29卓）
+  const tableCounts = [7, 10, 12];
+  const totalTables = tableCounts.reduce((a, b) => a + b, 0); // 29
+
+  // 各テーブルの席数 (最後の1卓は3席、それ以外は6席)
   const seatCounts = Array.from({ length: totalTables }, (_, i) =>
     i === totalTables - 1 ? 3 : 6
   );
-  const tables = seatCounts.map(count => Array(count).fill(false));
+  // 全席数の合計を計算 (28 * 6 + 3 = 168 + 3 = 171)
+  const TOTAL_CAPACITY = seatCounts.reduce((a, b) => a + b, 0); 
+  const MAX_RESERVATION_PER_USER = 6;
 
-  function countTotalOccupiedSeats() {
-    return tables.flat().filter(Boolean).length;
+  let seatsData = {}; // Firebaseから取得した全席の状態 (例: {"T1-S1": true, "T1-S2": false, ...})
+
+  // ヘルパー: テーブル番号と席番号からデータベースキーを生成
+  function getSeatKey(tableNum, seatIndex) {
+    // テーブル番号は1から、席番号は1から
+    return `T${tableNum + 1}-S${seatIndex + 1}`; 
   }
 
+  // 現在の予約済み席数をカウント
+  function countTotalOccupiedSeats() {
+    // seatsDataオブジェクトの値から true の数を数える
+    return Object.values(seatsData).filter(status => status === true).length;
+  }
+
+  // UI上の席数表示を更新
+  function updateCapacityDisplay() {
+    const reservedCount = countTotalOccupiedSeats();
+    document.getElementById("reserved-count").textContent = reservedCount;
+    document.getElementById("total-seats").textContent = TOTAL_CAPACITY;
+  }
+
+  // 席の状態を切り替える（トランザクション処理）
+  function toggleSeatStatus(tableNum, seatIndex) {
+    const seatKey = getSeatKey(tableNum, seatIndex);
+    const isLocalOccupied = seatsData[seatKey] === true; // クリック時のローカルな予約状況
+
+    // 予約を試みている場合（キャンセルではない場合）のローカルでの最大数チェック
+    if (!isLocalOccupied && countTotalOccupiedSeats() >= MAX_RESERVATION_PER_USER) {
+      document.getElementById("limit-msg").style.display = "block";
+      return;
+    }
+    document.getElementById("limit-msg").style.display = "none";
+
+    // トランザクション処理を開始
+    seatsRef.child(seatKey).transaction((currentValue) => {
+      // currentValue はトランザクション開始時のDB上の値
+      const isDbOccupied = currentValue === true; // DB上の予約状況
+      
+      if (isLocalOccupied) { // ユーザーが**キャンセル**を試みている場合
+        // DB上で予約済みの状態であれば、falseに戻す
+        if (isDbOccupied) {
+          return false; // DBの値をfalseに更新
+        } else {
+          // 既に誰かにキャンセルされていた場合
+          return; // 変更せずトランザクションを中断
+        }
+      } else { // ユーザーが**予約**を試みている場合
+        // DB上で未予約（falseまたはnull）であれば、trueに更新
+        if (!isDbOccupied) {
+          // 予約成功
+          return true; 
+        } else {
+          // 🚨 競合が発生！他のユーザーが先に予約した
+          alert("🚨 競合エラー: すみません、この席はちょうど他の人に予約されました。別の席を選んでください。");
+          return; // 変更せずトランザクションを中断（二重予約を防止）
+        }
+      }
+    }, (error, committed, snapshot) => {
+      if (error) {
+        console.error("Transaction failed: ", error);
+        alert("予約処理中にエラーが発生しました。インターネット接続を確認してください。");
+      } else if (!committed) {
+        console.log("Transaction aborted (e.g., already reserved or canceled by another user)");
+      } else {
+        console.log("Seat status successfully updated.");
+      }
+      // トランザクションの結果は、on('value')リスナーが自動的にUIに反映します
+    });
+  }
+
+  // =================================================================
+  // 3. UIレンダリング
+  // =================================================================
+  
+  // 席のDOM要素を作成
   function createSeat(seatIndex, tableNum) {
+    const seatKey = getSeatKey(tableNum, seatIndex);
+    const isOccupied = seatsData[seatKey] === true; // DBの状態に基づいて決定
+
     const seat = document.createElement("div");
-    seat.className = "seat" + (tables[tableNum][seatIndex] ? " occupied" : "");
+    seat.className = "seat" + (isOccupied ? " occupied" : "");
     seat.innerText = seatIndex + 1;
     seat.onclick = () => {
-      if (!tables[tableNum][seatIndex] && countTotalOccupiedSeats() >= 6) {
-        document.getElementById("limit-msg").style.display = "block";
-        return;
-      }
-      tables[tableNum][seatIndex] = !tables[tableNum][seatIndex];
-      document.getElementById("limit-msg").style.display = "none";
-      renderTables();
+      toggleSeatStatus(tableNum, seatIndex); 
     };
     return seat;
   }
 
+  // テーブルブロックのDOM要素を作成
   function createTableBlock(tableNum) {
     const block = document.createElement("div");
     block.className = "table-block";
 
-    const seatCount = tables[tableNum].length;
+    const seatCount = seatCounts[tableNum];
 
-    if (tableNum === totalTables - 1) {
+    // 特殊な3席テーブルの処理
+    if (tableNum === totalTables - 1 && seatCount === 3) {
       const seatsTop = document.createElement("div");
       seatsTop.className = "seat-row";
 
@@ -163,13 +347,14 @@
 
       const table = document.createElement("div");
       table.className = "table";
-      table.innerText = `机 ${tableNum + 1}`;
+      table.innerText = `机 ${tableNum + 1} (3席)`;
 
       block.appendChild(seatsTop);
       block.appendChild(table);
       return block;
     }
 
+    // 標準の6席テーブルの処理 (上下に3席ずつ)
     const seatsTop = document.createElement("div");
     seatsTop.className = "seat-row";
     const seatsBottom = document.createElement("div");
@@ -183,7 +368,7 @@
 
     const table = document.createElement("div");
     table.className = "table";
-    table.innerText = `机 ${tableNum + 1}`;
+    table.innerText = `机 ${tableNum + 1} (6席)`;
 
     for (let i = half; i < seatCount; i++) {
       seatsBottom.appendChild(createSeat(i, tableNum));
@@ -195,6 +380,7 @@
     return block;
   }
 
+  // 画面全体のテーブルを再描画
   function renderTables() {
     const left = document.getElementById("left-column");
     const middle = document.getElementById("middle-column");
@@ -206,18 +392,42 @@
 
     let index = 0;
 
+    // 左カラム
     for (let i = 0; i < tableCounts[0]; i++) {
       left.appendChild(createTableBlock(index++));
     }
+    // 中央カラム
     for (let i = 0; i < tableCounts[1]; i++) {
       middle.appendChild(createTableBlock(index++));
     }
+    // 右カラム
     for (let i = 0; i < tableCounts[2]; i++) {
       right.appendChild(createTableBlock(index++));
     }
+    
+    // 予約数の表示を更新
+    updateCapacityDisplay();
   }
+  
+  // =================================================================
+  // 4. Firebaseデータリスナー
+  // =================================================================
 
-  renderTables();
+  // Firebase Realtime Databaseのデータ変更を監視
+  seatsRef.on('value', (snapshot) => {
+    // ローディング画面を非表示にする
+    document.getElementById("loading-overlay").style.display = 'none';
+
+    // スナップショットから現在の全席の状態を取得
+    seatsData = snapshot.val() || {};
+    // 取得したデータに基づいてUIを再描画
+    renderTables(); 
+  }, (error) => {
+    console.error("Firebase connection error: ", error);
+    // エラー発生時はローディングを非表示にし、エラーメッセージを表示
+    document.getElementById("loading-overlay").innerHTML = '<p style="color:red;">❌ データベース接続エラー</p>';
+  });
+
 </script>
 
 </body>
