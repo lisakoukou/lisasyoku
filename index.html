@@ -11,7 +11,7 @@
       font-family: 'Inter', sans-serif;
       padding: 20px;
       text-align: center;
-      background-color: #f9f7f1; /* 明るいクリーム色 */
+      background-color: #f9f7f1;
       min-height: 100vh;
     }
     .columns {
@@ -57,20 +57,19 @@
       user-select: none;
       transition: background-color 0.3s, transform 0.1s, box-shadow 0.1s;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      position: relative; /* ツールチップの基点 */
+      position: relative;
     }
     .seat:hover:not(.occupied) {
         background-color: #333;
         transform: scale(1.05);
     }
     .seat.occupied {
-      background-color: #90ee90; /* ライトグリーン */
+      background-color: #90ee90;
       color: #000000;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    /* 自分自身の予約席 */
     .seat.mine {
-        background-color: #5bc0eb; /* スカイブルー */
+        background-color: #5bc0eb;
         color: white;
     }
     .table {
@@ -85,7 +84,6 @@
       user-select: none;
       margin: 5px 0;
     }
-    /* ツールチップスタイル */
     .tooltip {
         visibility: hidden;
         background-color: #333;
@@ -95,7 +93,7 @@
         padding: 5px 10px;
         position: absolute;
         z-index: 1;
-        bottom: 125%; /* 席の上 */
+        bottom: 125%;
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
@@ -127,7 +125,6 @@
 
 <body class="bg-gray-50 flex flex-col items-center p-4">
 
-<!-- ローディング/メッセージオーバーレイ -->
 <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-80 flex justify-center items-center flex-col z-50">
     <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" style="background: none;">
         <circle cx="50" cy="50" r="40" stroke="#5bc0eb" stroke-width="8" fill="none" stroke-linecap="round" 
@@ -136,17 +133,14 @@
     <p class="mt-4 text-lg text-blue-500">Firebaseに接続中...</p>
 </div>
 
-<!-- メッセージボックス -->
 <div id="message-box" class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-all duration-500 transform translate-x-full opacity-0" style="min-width: 250px;"></div>
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6">食堂予約（リアルタイム・トランザクション版）</h1>
 
-<!-- 予約フォームへのリンク (index.html から yoyaku.html へ) -->
 <a href="yoyaku.html" class="link-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 mb-4 inline-block">
   予約情報入力/変更 (必須)
 </a>
 
-<!-- ユーザー情報表示 -->
 <div id="user-info" class="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto">
     <p>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline">予約情報入力ページ</a>で名前などを入力してください。</p>
 </div>
@@ -158,22 +152,16 @@
     総予約: <span id="total-occupied-count" class="font-bold">0</span> / <span id="total-capacity-count">171</span> 席
 </p>
 
-<!-- 席の配置 -->
 <div class="columns">
   <div class="column" id="left-column"></div>
   <div class="column" id="middle-column"></div>
   <div class="column" id="right-column"></div>
 </div>
 
-<!-- ================================================================= -->
-<!-- 🌟 スクリプト -->
-<!-- ================================================================= -->
 <script type="module">
-  // 1. FirebaseモジュールをCDN経由でインポート
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import { getDatabase, ref, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-  // 2. Firebase設定情報 (ユーザー提供の設定を引き継ぎ)
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
     authDomain: "lisasyokudo.firebaseapp.com",
@@ -185,16 +173,10 @@
     measurementId: "G-HBNXQBQ4PR"
   };
 
-  // 3. Firebase初期化とDatabase参照の取得
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const seatsRef = ref(db, 'seats'); 
   
-  // =================================================================
-  // 4. ユーザー識別と状態管理
-  // =================================================================
-
-  // ユーザーIDの取得/生成
   const getUserId = () => {
     let userId = localStorage.getItem('currentUserId');
     if (!userId) {
@@ -207,12 +189,10 @@
   const currentUserId = getUserId();
   const MAX_RESERVATION_PER_USER = 6;
   
-  // localStorageからユーザーの詳細情報を取得
   let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
   
-  let seatsData = {}; // Firebaseから取得した全席の状態 
+  let seatsData = {};
 
-  // カスタムメッセージボックス表示
   function showMessage(text, isError = false) {
       const msgBox = document.getElementById('message-box');
       msgBox.textContent = text;
@@ -226,7 +206,6 @@
       }, 3000);
   }
 
-  // ユーザー情報の表示を更新
   function updateUserInfoDisplay() {
     const userInfoDiv = document.getElementById('user-info');
     if (currentUserDetails && currentUserDetails.name) {
@@ -239,40 +218,31 @@
             <p class="text-xs text-gray-500">（この情報で予約されます。変更は「予約情報入力/変更」から）</p>
         `;
     } else {
-        // 詳細情報がない場合、予約処理をブロックするため赤く強調
         userInfoDiv.className = "mb-4 p-3 bg-red-100 border border-red-400 rounded-lg text-sm text-red-700 w-full max-w-xl mx-auto";
         userInfoDiv.innerHTML = `<p class="font-bold">🚨 予約者情報が見つかりません。</p><p>席を予約する前に、<a href="yoyaku.html" class="text-red-600 underline">予約情報入力ページ</a>で名前、メール、時間を入力してください。</p>`;
     }
   }
   updateUserInfoDisplay();
   
-  // =================================================================
-  // 5. 予約ロジックとデータ管理
-  // =================================================================
-
   const tableCounts = [7, 10, 12];
   const totalTables = tableCounts.reduce((a, b) => a + b, 0); 
   const seatCounts = Array.from({ length: totalTables }, (_, i) => i === totalTables - 1 ? 3 : 6);
   const TOTAL_CAPACITY = seatCounts.reduce((a, b) => a + b, 0); 
 
-  // ヘルパー: テーブル番号と席番号からデータベースキーを生成
   function getSeatKey(tableNum, seatIndex) {
     return `T${tableNum + 1}-S${seatIndex + 1}`; 
   }
 
-  // 現在のユーザーが予約している席数をカウント
   function countCurrentUserOccupiedSeats() {
     return Object.values(seatsData).filter(
         seat => seat && seat.reservedByUserId === currentUserId
     ).length;
   }
   
-  // 総予約席数をカウント
   function countTotalOccupiedSeats() {
     return Object.values(seatsData).filter(seat => seat && seat.isOccupied).length;
   }
 
-  // UI上の席数表示を更新
   function updateCapacityDisplay() {
     const userReservedCount = countCurrentUserOccupiedSeats();
     document.getElementById("reserved-count").textContent = userReservedCount;
@@ -280,7 +250,6 @@
     document.getElementById("total-capacity-count").textContent = TOTAL_CAPACITY;
   }
 
-  // 席の状態を切り替える（トランザクション処理）
   function toggleSeatStatus(tableNum, seatIndex) {
     if (!currentUserDetails || !currentUserDetails.name) {
         showMessage("🚨 エラー: 予約する前に、予約情報入力ページで名前などを入力してください。", true);
@@ -294,30 +263,25 @@
       const userReservedCount = countCurrentUserOccupiedSeats();
       
       if (currentSeat && currentSeat.isOccupied && currentSeat.reservedByUserId === currentUserId) {
-        // 1. キャンセル処理 (現在のユーザーが予約している場合)
-        return null; // DBからキーを削除してキャンセル
+        return null;
         
       } else if (currentSeat && currentSeat.isOccupied) {
-        // 2. 競合エラー (他のユーザーが予約済みの場合)
-        // トランザクションを中断 (null, undefined, または現在の値を返すと中断)
         setTimeout(() => { showMessage(`🚨 競合エラー: この席は${currentSeat.reservedByName || '他の人'}に先に予約されました。`, true); }, 0); 
-        return currentSeat; // 値を変更しない
+        return currentSeat;
 
       } else {
-        // 3. 新規予約処理 (空席の場合)
         if (userReservedCount >= MAX_RESERVATION_PER_USER) {
           showMessage(`⚠️ 予約上限: 最大${MAX_RESERVATION_PER_USER}席までしか予約できません。`, true);
-          return currentSeat; // 変更しない
+          return currentSeat;
         }
 
-        // 予約成功
         return {
           isOccupied: true,
           reservedByUserId: currentUserId,
           reservedByName: currentUserDetails.name,
           reservedByEmail: currentUserDetails.email,
           reservationTime: currentUserDetails.time,
-          timestamp: serverTimestamp() // 予約日時を記録
+          timestamp: serverTimestamp()
         };
       }
     }).then((result) => {
@@ -334,11 +298,6 @@
     });
   }
 
-  // =================================================================
-  // 6. UIレンダリング
-  // =================================================================
-  
-  // 席のDOM要素を作成
   function createSeat(seatIndex, tableNum) {
     const seatKey = getSeatKey(tableNum, seatIndex);
     const seatInfo = seatsData[seatKey];
@@ -355,14 +314,12 @@
             seat.classList.add("mine");
         }
         
-        // ツールチップを作成し、予約者情報を表示
         const tooltip = document.createElement("span");
         tooltip.className = "tooltip";
         
         const name = seatInfo.reservedByName || '不明なユーザー';
         const time = seatInfo.reservationTime || '時間未定';
         
-        // 予約者が自分自身の場合は「自分」と表示
         const reservedByText = isMine ? 'あなた (クリックで解除)' : name;
         
         tooltip.innerHTML = `予約者: ${reservedByText}<br>時間: ${time}`;
@@ -376,7 +333,6 @@
     return seat;
   }
 
-  // テーブルブロックのDOM要素を作成 (変更なし)
   function createTableBlock(tableNum) {
     const block = document.createElement("div");
     block.className = "table-block";
@@ -385,7 +341,6 @@
     const isSpecialTable = (tableNum === totalTables - 1 && seatCount === 3);
     const tableLabel = `机 ${tableNum + 1} (${seatCount}席)`;
 
-    // テーブルの座席配置ロジック
     if (isSpecialTable) {
       const seatsTop = document.createElement("div");
       seatsTop.className = "seat-row";
@@ -421,7 +376,6 @@
     return block;
   }
 
-  // 画面全体のテーブルを再描画
   function renderTables() {
     const left = document.getElementById("left-column");
     const middle = document.getElementById("middle-column");
@@ -444,18 +398,67 @@
     updateCapacityDisplay();
   }
   
-  // =================================================================
-  // 7. Firebaseデータリスナー
-  // =================================================================
+  const lastResetRef = ref(db, 'lastResetTimestamp');
+  const RESET_HOUR = 20;
 
-  // onValue を使用してデータ変更を監視
+  onValue(lastResetRef, (snapshot) => {
+    const lastResetTime = snapshot.val();
+    const now = new Date();
+    
+    let isResetNeeded = false;
+    
+    if (lastResetTime) {
+        const lastResetDate = new Date(lastResetTime);
+        const resetThreshold = new Date(lastResetDate);
+        
+        resetThreshold.setDate(lastResetDate.getDate());
+        resetThreshold.setHours(RESET_HOUR, 0, 0, 0);
+
+        if (lastResetDate.getHours() < RESET_HOUR && now.getHours() >= RESET_HOUR) {
+             isResetNeeded = true;
+        } 
+        else if (now.getTime() > lastResetTime + 24 * 60 * 60 * 1000) {
+             isResetNeeded = true;
+        } 
+    }
+
+    if (isResetNeeded) {
+        console.log("簡易リセットが必要です。トランザクションを実行します...");
+        
+        runTransaction(lastResetRef, (currentTimestamp) => {
+            if (currentTimestamp === lastResetTime) {
+                const updates = {};
+                updates['/seats'] = null;
+                updates['/lastResetTimestamp'] = serverTimestamp();
+                
+                db.ref().update(updates)
+                    .then(() => {
+                        console.log("🎉 簡易自動リセットが成功しました。");
+                        showMessage("✅ 予約データが自動リセットされました。", false);
+                    })
+                    .catch(e => {
+                        console.error("簡易リセット処理の実行に失敗:", e);
+                    });
+                
+                return currentTimestamp; 
+            } else {
+                console.log("他のクライアントが既にリセットを実行しました。");
+                return currentTimestamp;
+            }
+        }).catch(error => {
+             console.error("簡易リセットトランザクションに失敗:", error);
+        });
+    } else if (!lastResetTime) {
+        lastResetRef.set(serverTimestamp()).catch(e => console.error("初回タイムスタンプ設定エラー:", e));
+        console.log("初回起動時のタイムスタンプを記録しました。");
+    }
+}, { onlyOnce: true });
+
+
   onValue(seatsRef, (snapshot) => {
-    // ローディング画面を非表示にする
     document.getElementById("loading-overlay").style.display = 'none';
 
-    // スナップショットから現在の全席の状態を取得
     seatsData = snapshot.val() || {};
-    // 取得したデータに基づいてUIを再描画
     renderTables(); 
   }, (error) => {
     console.error("Firebase connection error: ", error);
