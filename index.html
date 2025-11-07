@@ -1,470 +1,470 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>食堂予約（リアルタイム・デザイン統合版）</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* ============================================================= */
-    /* 🌟 カスタムスタイル (デザイン統合) 🌟 */
-    /* ============================================================= */
-    body {
-      font-family: 'Inter', sans-serif;
-      padding: 20px;
-      text-align: center;
-      /* 背景画像を維持 */
-      background: url('hosaka haikei sikaku.jfif') no-repeat center center fixed !important; 
-      background-size: cover !important;
-      overflow-x: auto;
-      position: relative;
-      min-height: 100vh;
-    }
-
-    /* 半透明オーバーレイで文字が見やすくなる */
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 253, 249, 0.4); 
-      z-index: -1;
-    }
-    
-    .columns {
-      display: flex;
-      flex-wrap: wrap; 
-      justify-content: center;
-      gap: 30px;
-      padding-bottom: 50px;
-    }
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-      min-width: 250px; 
-    }
-    
-    /* 席ブロックの背景を透過させて背景画像と馴染ませる */
-    .table-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 15px;
-      border: 1px solid rgba(221, 221, 221, 0.5); /* 薄い線 */
-      border-radius: 12px;
-      background-color: rgba(255, 255, 255, 0.85); /* 統合版の背景 */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .seat-row {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-    }
-    
-    /* 🌟 椅子（空席）の色: 明るい青 🌟 */
-    .seat {
-      width: 30px !important;
-      height: 30px !important;
-      border-radius: 50% !important;
-      background-color: #0096FF !important; /* 明るい青 */
-      color: #fff !important;
-      font-weight: bold !important;
-      font-size: 14px !important;
-      line-height: 30px !important;
-      text-align: center !important;
-      cursor: pointer !important;
-      user-select: none !important;
-      transition: transform 0.15s ease, background-color 0.3s !important;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-      position: relative !important;
-    }
-    /* 🌟 ホバー時の色: 濃い青 🌟 */
-    .seat:hover:not(.occupied) {
-        background-color: #0073CC !important; 
-        transform: scale(1.1) !important; 
-    }
-    /* 🌟 予約済み（他人）の色: 深緑 🌟 */
-    .seat.occupied {
-      background-color: #1E8449 !important; /* 深緑 */
-      color: #fff !important;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-    }
-    /* 自分自身の予約席 */
-    .seat.mine {
-        background-color: #17A2B8 !important; /* スカイブルー (識別用に濃い目の色を維持) */
-        color: white !important;
-    }
-    
-    /* 🌟 机の色: 濃い茶色 🌟 */
-    .table {
-      width: 100px !important;
-      height: 40px !important;
-      background-color: #8B4513 !important; /* 濃い茶色 */
-      border: 2px solid #654321 !important;
-      border-radius: 8px !important;
-      line-height: 40px !important;
-      font-weight: bold !important;
-      color: #fff !important;
-      user-select: none !important;
-      margin: 5px 0 !important;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
-    }
-    
-    /* ツールチップスタイル (変更なし) */
-    .tooltip {
-        visibility: hidden;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px 10px;
-        position: absolute;
-        z-index: 10; /* z-indexを上げて手前に表示 */
-        bottom: 125%; 
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 12px;
-        line-height: 1.2;
-    }
-    .seat.occupied:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-    .tooltip::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: #333 transparent transparent transparent;
-    }
-    @media (max-width: 768px) {
-        .columns { flex-direction: column; gap: 20px; }
-        .column { min-width: 90%; margin: 0 auto; }
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>食堂予約（リアルタイム・トランザクション版）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 既存のCSSをTailwindに置き換えつつ、カスタムスタイルを追加 */
+    body {
+      font-family: 'Inter', sans-serif;
+      padding: 20px;
+      text-align: center;
+      background-color: #f9f7f1; /* 明るいクリーム色 */
+      min-height: 100vh;
+    }
+    .columns {
+      display: flex;
+      flex-wrap: wrap; 
+      justify-content: center;
+      gap: 30px;
+      padding-bottom: 50px;
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      min-width: 250px; 
+    }
+    .table-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    .seat-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .seat {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background-color: #000000;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 35px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s, transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      position: relative; /* ツールチップの基点 */
+    }
+    .seat:hover:not(.occupied) {
+        background-color: #333;
+        transform: scale(1.05);
+    }
+    .seat.occupied {
+      background-color: #90ee90; /* ライトグリーン */
+      color: #000000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    /* 自分自身の予約席 */
+    .seat.mine {
+        background-color: #5bc0eb; /* スカイブルー */
+        color: white;
+    }
+    .table {
+      width: 120px;
+      height: 45px;
+      background-color: #c4c4c4;
+      border: 2px solid #999;
+      border-radius: 8px;
+      line-height: 45px;
+      font-weight: bold;
+      color: #333;
+      user-select: none;
+      margin: 5px 0;
+    }
+    /* ツールチップスタイル */
+    .tooltip {
+        visibility: hidden;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 10px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%; /* 席の上 */
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 12px;
+        line-height: 1.2;
+    }
+    .seat.occupied:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+    .tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #333 transparent transparent transparent;
+    }
+    @media (max-width: 768px) {
+        .columns { flex-direction: column; gap: 20px; }
+        .column { min-width: 90%; margin: 0 auto; }
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50 flex flex-col items-center p-4">
 
+<!-- ローディング/メッセージオーバーレイ -->
 <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-80 flex justify-center items-center flex-col z-50">
-    <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" style="background: none;">
-        <circle cx="50" cy="50" r="40" stroke="#5bc0eb" stroke-width="8" fill="none" stroke-linecap="round" 
-        style="stroke-dasharray: 251.2; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite, rotate 2s linear infinite;"></circle>
-    </svg>
-    <p class="mt-4 text-lg text-blue-500">Firebaseに接続中...</p>
+    <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" style="background: none;">
+        <circle cx="50" cy="50" r="40" stroke="#5bc0eb" stroke-width="8" fill="none" stroke-linecap="round" 
+        style="stroke-dasharray: 251.2; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite, rotate 2s linear infinite;"></circle>
+    </svg>
+    <p class="mt-4 text-lg text-blue-500">Firebaseに接続中...</p>
 </div>
 
+<!-- メッセージボックス -->
 <div id="message-box" class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-all duration-500 transform translate-x-full opacity-0" style="min-width: 250px;"></div>
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6">食堂予約（リアルタイム・トランザクション版）</h1>
 
+<!-- 予約フォームへのリンク (index.html から yoyaku.html へ) -->
 <a href="yoyaku.html" class="link-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 mb-4 inline-block">
-  予約情報入力/変更 (必須)
+  予約情報入力/変更 (必須)
 </a>
 
+<!-- ユーザー情報表示 -->
 <div id="user-info" class="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto">
-    <p>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline">予約情報入力ページ</a>で名前などを入力してください。</p>
+    <p>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline">予約情報入力ページ</a>で名前などを入力してください。</p>
 </div>
 
 
 <p id="total-seats-status" class="text-lg font-medium mb-4">
-    現在の予約数: <span id="reserved-count" class="font-bold text-green-600">0</span> 席 (個人予約 / <span id="max-reservation" class="font-bold text-red-600">6</span> 席まで)
-    <span class="mx-2">|</span>
-    総予約: <span id="total-occupied-count" class="font-bold">0</span> / <span id="total-capacity-count">171</span> 席
+    現在の予約数: <span id="reserved-count" class="font-bold text-green-600">0</span> 席 (個人予約 / <span id="max-reservation" class="font-bold text-red-600">6</span> 席まで)
+    <span class="mx-2">|</span>
+    総予約: <span id="total-occupied-count" class="font-bold">0</span> / <span id="total-capacity-count">171</span> 席
 </p>
 
+<!-- 席の配置 -->
 <div class="columns">
-  <div class="column" id="left-column"></div>
-  <div class="column" id="middle-column"></div>
-  <div class="column" id="right-column"></div>
+  <div class="column" id="left-column"></div>
+  <div class="column" id="middle-column"></div>
+  <div class="column" id="right-column"></div>
 </div>
 
+<!-- ================================================================= -->
+<!-- 🌟 スクリプト -->
+<!-- ================================================================= -->
 <script type="module">
-  // 1. FirebaseモジュールをCDN経由でインポート
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  // 1. FirebaseモジュールをCDN経由でインポート
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-  // 2. Firebase設定情報 (ユーザー提供の設定を引き継ぎ)
-  const firebaseConfig = {
-    apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
-    authDomain: "lisasyokudo.firebaseapp.com",
-    databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "lisasyokudo",
-    storageBucket: "lisasyokudo.firebasestorage.app",
-    messagingSenderId: "94391681633",
-    appId: "1:94391681633:web:515d6d17c9567e153b2020",
-    measurementId: "G-HBNXQBQ4PR"
-  };
+  // 2. Firebase設定情報 (ユーザー提供の設定を引き継ぎ)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
+    authDomain: "lisasyokudo.firebaseapp.com",
+    databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "lisasyokudo",
+    storageBucket: "lisasyokudo.firebasestorage.app",
+    messagingSenderId: "94391681633",
+    appId: "1:94391681633:web:515d6d17c9567e153b2020",
+    measurementId: "G-HBNXQBQ4PR"
+  };
 
-  // 3. Firebase初期化とDatabase参照の取得
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const seatsRef = ref(db, 'seats'); 
-  
-  // 4. ユーザー識別と状態管理
-  const getUserId = () => {
-    let userId = localStorage.getItem('currentUserId');
-    if (!userId) {
-      userId = crypto.randomUUID();
-      localStorage.setItem('currentUserId', userId);
-    }
-    return userId;
-  };
+  // 3. Firebase初期化とDatabase参照の取得
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const seatsRef = ref(db, 'seats'); 
+  
+  // =================================================================
+  // 4. ユーザー識別と状態管理
+  // =================================================================
 
-  const currentUserId = getUserId();
-  const MAX_RESERVATION_PER_USER = 6;
-  
-  let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
-  let seatsData = {}; 
+  // ユーザーIDの取得/生成
+  const getUserId = () => {
+    let userId = localStorage.getItem('currentUserId');
+    if (!userId) {
+      userId = crypto.randomUUID();
+      localStorage.setItem('currentUserId', userId);
+    }
+    return userId;
+  };
 
-  // カスタムメッセージボックス表示
-  function showMessage(text, isError = false) {
-      const msgBox = document.getElementById('message-box');
-      msgBox.textContent = text;
-      msgBox.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
-      msgBox.style.opacity = '1';
-      msgBox.style.transform = 'translate-x-0';
+  const currentUserId = getUserId();
+  const MAX_RESERVATION_PER_USER = 6;
+  
+  // localStorageからユーザーの詳細情報を取得
+  let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
+  
+  let seatsData = {}; // Firebaseから取得した全席の状態 
 
-      setTimeout(() => {
-          msgBox.style.opacity = '0';
-          msgBox.style.transform = 'translate-x-full';
-      }, 3000);
-  }
+  // カスタムメッセージボックス表示
+  function showMessage(text, isError = false) {
+      const msgBox = document.getElementById('message-box');
+      msgBox.textContent = text;
+      msgBox.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
+      msgBox.style.opacity = '1';
+      msgBox.style.transform = 'translate-x-0';
 
-  // ユーザー情報の表示を更新
-  function updateUserInfoDisplay() {
-    const userInfoDiv = document.getElementById('user-info');
-    if (currentUserDetails && currentUserDetails.name) {
-        userInfoDiv.className = "mb-4 p-3 bg-blue-100 border border-blue-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto";
-        userInfoDiv.innerHTML = `
-            <p><strong class="text-blue-600">現在の予約者情報:</strong></p>
-            <p><strong>名前:</strong> ${currentUserDetails.name}</p>
-            <p><strong>メール:</strong> ${currentUserDetails.email}</p>
-            <p><strong>時間:</strong> ${currentUserDetails.time}</p>
-            <p class="text-xs text-gray-500">（この情報で予約されます。変更は「予約情報入力/変更」から）</p>
-        `;
-    } else {
-        userInfoDiv.className = "mb-4 p-3 bg-red-100 border border-red-400 rounded-lg text-sm text-red-700 w-full max-w-xl mx-auto";
-        userInfoDiv.innerHTML = `<p class="font-bold">🚨 予約者情報が見つかりません。</p><p>席を予約する前に、<a href="yoyaku.html" class="text-red-600 underline">予約情報入力ページ</a>で名前、メール、時間を入力してください。</p>`;
-    }
-  }
-  updateUserInfoDisplay();
-  
-  // 5. 予約ロジックとデータ管理
+      setTimeout(() => {
+          msgBox.style.opacity = '0';
+          msgBox.style.transform = 'translate-x-full';
+      }, 3000);
+  }
 
-  const tableCounts = [7, 10, 12];
-  const totalTables = tableCounts.reduce((a, b) => a + b, 0); 
-  const seatCounts = Array.from({ length: totalTables }, (_, i) => i === totalTables - 1 ? 3 : 6);
-  const TOTAL_CAPACITY = seatCounts.reduce((a, b) => a + b, 0); 
+  // ユーザー情報の表示を更新
+  function updateUserInfoDisplay() {
+    const userInfoDiv = document.getElementById('user-info');
+    if (currentUserDetails && currentUserDetails.name) {
+        userInfoDiv.className = "mb-4 p-3 bg-blue-100 border border-blue-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto";
+        userInfoDiv.innerHTML = `
+            <p><strong class="text-blue-600">現在の予約者情報:</strong></p>
+            <p><strong>名前:</strong> ${currentUserDetails.name}</p>
+            <p><strong>メール:</strong> ${currentUserDetails.email}</p>
+            <p><strong>時間:</strong> ${currentUserDetails.time}</p>
+            <p class="text-xs text-gray-500">（この情報で予約されます。変更は「予約情報入力/変更」から）</p>
+        `;
+    } else {
+        // 詳細情報がない場合、予約処理をブロックするため赤く強調
+        userInfoDiv.className = "mb-4 p-3 bg-red-100 border border-red-400 rounded-lg text-sm text-red-700 w-full max-w-xl mx-auto";
+        userInfoDiv.innerHTML = `<p class="font-bold">🚨 予約者情報が見つかりません。</p><p>席を予約する前に、<a href="yoyaku.html" class="text-red-600 underline">予約情報入力ページ</a>で名前、メール、時間を入力してください。</p>`;
+    }
+  }
+  updateUserInfoDisplay();
+  
+  // =================================================================
+  // 5. 予約ロジックとデータ管理
+  // =================================================================
 
-  // ヘルパー: テーブル番号と席番号からデータベースキーを生成
-  function getSeatKey(tableNum, seatIndex) {
-    return `T${tableNum + 1}-S${seatIndex + 1}`; 
-  }
+  const tableCounts = [7, 10, 12];
+  const totalTables = tableCounts.reduce((a, b) => a + b, 0); 
+  const seatCounts = Array.from({ length: totalTables }, (_, i) => i === totalTables - 1 ? 3 : 6);
+  const TOTAL_CAPACITY = seatCounts.reduce((a, b) => a + b, 0); 
 
-  // 現在のユーザーが予約している席数をカウント
-  function countCurrentUserOccupiedSeats() {
-    return Object.values(seatsData).filter(
-        seat => seat && seat.reservedByUserId === currentUserId
-    ).length;
-  }
-  
-  // 総予約席数をカウント
-  function countTotalOccupiedSeats() {
-    return Object.values(seatsData).filter(seat => seat && seat.isOccupied).length;
-  }
+  // ヘルパー: テーブル番号と席番号からデータベースキーを生成
+  function getSeatKey(tableNum, seatIndex) {
+    return `T${tableNum + 1}-S${seatIndex + 1}`; 
+  }
 
-  // UI上の席数表示を更新
-  function updateCapacityDisplay() {
-    document.getElementById("reserved-count").textContent = countCurrentUserOccupiedSeats();
-    document.getElementById("total-occupied-count").textContent = countTotalOccupiedSeats();
-    document.getElementById("total-capacity-count").textContent = TOTAL_CAPACITY;
-  }
+  // 現在のユーザーが予約している席数をカウント
+  function countCurrentUserOccupiedSeats() {
+    return Object.values(seatsData).filter(
+        seat => seat && seat.reservedByUserId === currentUserId
+    ).length;
+  }
+  
+  // 総予約席数をカウント
+  function countTotalOccupiedSeats() {
+    return Object.values(seatsData).filter(seat => seat && seat.isOccupied).length;
+  }
 
-  // 席の状態を切り替える（トランザクション処理）
-  function toggleSeatStatus(tableNum, seatIndex) {
-    if (!currentUserDetails || !currentUserDetails.name) {
-        showMessage("🚨 エラー: 予約する前に、予約情報入力ページで名前などを入力してください。", true);
-        return;
-    }
+  // UI上の席数表示を更新
+  function updateCapacityDisplay() {
+    const userReservedCount = countCurrentUserOccupiedSeats();
+    document.getElementById("reserved-count").textContent = userReservedCount;
+    document.getElementById("total-occupied-count").textContent = countTotalOccupiedSeats();
+    document.getElementById("total-capacity-count").textContent = TOTAL_CAPACITY;
+  }
 
-    const seatKey = getSeatKey(tableNum, seatIndex);
-    const seatRef = ref(db, 'seats/' + seatKey);
+  // 席の状態を切り替える（トランザクション処理）
+  function toggleSeatStatus(tableNum, seatIndex) {
+    if (!currentUserDetails || !currentUserDetails.name) {
+        showMessage("🚨 エラー: 予約する前に、予約情報入力ページで名前などを入力してください。", true);
+        return;
+    }
 
-    runTransaction(seatRef, (currentSeat) => {
-      const userReservedCount = countCurrentUserOccupiedSeats();
-      
-      if (currentSeat && currentSeat.isOccupied && currentSeat.reservedByUserId === currentUserId) {
-        // 1. キャンセル処理
-        return null; 
-        
-      } else if (currentSeat && currentSeat.isOccupied) {
-        // 2. 競合エラー
-        setTimeout(() => { showMessage(`🚨 競合エラー: この席は${currentSeat.reservedByName || '他の人'}に先に予約されました。`, true); }, 0); 
-        return currentSeat; 
+    const seatKey = getSeatKey(tableNum, seatIndex);
+    const seatRef = ref(db, 'seats/' + seatKey);
 
-      } else {
-        // 3. 新規予約処理
-        if (userReservedCount >= MAX_RESERVATION_PER_USER) {
-          showMessage(`⚠️ 予約上限: 最大${MAX_RESERVATION_PER_USER}席までしか予約できません。`, true);
-          return currentSeat; 
-        }
+    runTransaction(seatRef, (currentSeat) => {
+      const userReservedCount = countCurrentUserOccupiedSeats();
+      
+      if (currentSeat && currentSeat.isOccupied && currentSeat.reservedByUserId === currentUserId) {
+        // 1. キャンセル処理 (現在のユーザーが予約している場合)
+        return null; // DBからキーを削除してキャンセル
+        
+      } else if (currentSeat && currentSeat.isOccupied) {
+        // 2. 競合エラー (他のユーザーが予約済みの場合)
+        // トランザクションを中断 (null, undefined, または現在の値を返すと中断)
+        setTimeout(() => { showMessage(`🚨 競合エラー: この席は${currentSeat.reservedByName || '他の人'}に先に予約されました。`, true); }, 0); 
+        return currentSeat; // 値を変更しない
 
-        // 予約成功
-        return {
-          isOccupied: true,
-          reservedByUserId: currentUserId,
-          reservedByName: currentUserDetails.name,
-          reservedByEmail: currentUserDetails.email,
-          reservationTime: currentUserDetails.time,
-          timestamp: serverTimestamp() 
-        };
-      }
-    }).then((result) => {
-        if (result.committed) {
-            if (result.snapshot.val() === null) {
-                showMessage("✅ 予約をキャンセルしました。");
-            } else if (result.snapshot.val().reservedByUserId === currentUserId) {
-                showMessage("🎉 席を予約しました！");
-            }
-        }
-    }).catch(error => {
-      console.error("Transaction failed: ", error);
-      showMessage("❌ 予約処理中にエラーが発生しました。インターネット接続を確認してください。", true);
-    });
-  }
+      } else {
+        // 3. 新規予約処理 (空席の場合)
+        if (userReservedCount >= MAX_RESERVATION_PER_USER) {
+          showMessage(`⚠️ 予約上限: 最大${MAX_RESERVATION_PER_USER}席までしか予約できません。`, true);
+          return currentSeat; // 変更しない
+        }
 
-  // 6. UIレンダリング
-  
-  // 席のDOM要素を作成
-  function createSeat(seatIndex, tableNum) {
-    const seatKey = getSeatKey(tableNum, seatIndex);
-    const seatInfo = seatsData[seatKey];
-    const isOccupied = seatInfo && seatInfo.isOccupied;
-    const isMine = isOccupied && seatInfo.reservedByUserId === currentUserId;
+        // 予約成功
+        return {
+          isOccupied: true,
+          reservedByUserId: currentUserId,
+          reservedByName: currentUserDetails.name,
+          reservedByEmail: currentUserDetails.email,
+          reservationTime: currentUserDetails.time,
+          timestamp: serverTimestamp() // 予約日時を記録
+        };
+      }
+    }).then((result) => {
+        if (result.committed) {
+            if (result.snapshot.val() === null) {
+                showMessage("✅ 予約をキャンセルしました。");
+            } else if (result.snapshot.val().reservedByUserId === currentUserId) {
+                showMessage("🎉 席を予約しました！");
+            }
+        }
+    }).catch(error => {
+      console.error("Transaction failed: ", error);
+      showMessage("❌ 予約処理中にエラーが発生しました。インターネット接続を確認してください。", true);
+    });
+  }
 
-    const seat = document.createElement("div");
-    seat.className = "seat";
-    seat.innerText = seatIndex + 1;
-    
-    if (isOccupied) {
-        seat.classList.add("occupied");
-        if (isMine) {
-            seat.classList.add("mine");
-        }
-        
-        // ツールチップを作成し、予約者情報を表示
-        const tooltip = document.createElement("span");
-        tooltip.className = "tooltip";
-        
-        const name = seatInfo.reservedByName || '不明なユーザー';
-        const time = seatInfo.reservationTime || '時間未定';
-        
-        const reservedByText = isMine ? 'あなた (クリックで解除)' : name;
-        
-        tooltip.innerHTML = `予約者: ${reservedByText}<br>時間: ${time}`;
-        seat.appendChild(tooltip);
+  // =================================================================
+  // 6. UIレンダリング
+  // =================================================================
+  
+  // 席のDOM要素を作成
+  function createSeat(seatIndex, tableNum) {
+    const seatKey = getSeatKey(tableNum, seatIndex);
+    const seatInfo = seatsData[seatKey];
+    const isOccupied = seatInfo && seatInfo.isOccupied;
+    const isMine = isOccupied && seatInfo.reservedByUserId === currentUserId;
 
-    }
+    const seat = document.createElement("div");
+    seat.className = "seat";
+    seat.innerText = seatIndex + 1;
+    
+    if (isOccupied) {
+        seat.classList.add("occupied");
+        if (isMine) {
+            seat.classList.add("mine");
+        }
+        
+        // ツールチップを作成し、予約者情報を表示
+        const tooltip = document.createElement("span");
+        tooltip.className = "tooltip";
+        
+        const name = seatInfo.reservedByName || '不明なユーザー';
+        const time = seatInfo.reservationTime || '時間未定';
+        
+        // 予約者が自分自身の場合は「自分」と表示
+        const reservedByText = isMine ? 'あなた (クリックで解除)' : name;
+        
+        tooltip.innerHTML = `予約者: ${reservedByText}<br>時間: ${time}`;
+        seat.appendChild(tooltip);
 
-    seat.onclick = () => {
-      toggleSeatStatus(tableNum, seatIndex); 
-    };
-    return seat;
-  }
+    }
 
-  // テーブルブロックのDOM要素を作成 (変更なし)
-  function createTableBlock(tableNum) {
-    const block = document.createElement("div");
-    block.className = "table-block";
+    seat.onclick = () => {
+      toggleSeatStatus(tableNum, seatIndex); 
+    };
+    return seat;
+  }
 
-    const seatCount = seatCounts[tableNum];
-    const isSpecialTable = (tableNum === totalTables - 1 && seatCount === 3);
-    const tableLabel = `机 ${tableNum + 1} (${seatCount}席)`;
+  // テーブルブロックのDOM要素を作成 (変更なし)
+  function createTableBlock(tableNum) {
+    const block = document.createElement("div");
+    block.className = "table-block";
 
-    // テーブルの座席配置ロジック
-    if (isSpecialTable) {
-      const seatsTop = document.createElement("div");
-      seatsTop.className = "seat-row";
-      for (let i = 0; i < seatCount; i++) {
-        seatsTop.appendChild(createSeat(i, tableNum));
-      }
-      const table = document.createElement("div");
-      table.className = "table";
-      table.innerText = tableLabel;
-      block.appendChild(seatsTop);
-      block.appendChild(table);
-      return block;
-    }
+    const seatCount = seatCounts[tableNum];
+    const isSpecialTable = (tableNum === totalTables - 1 && seatCount === 3);
+    const tableLabel = `机 ${tableNum + 1} (${seatCount}席)`;
 
-    const seatsTop = document.createElement("div");
-    seatsTop.className = "seat-row";
-    const seatsBottom = document.createElement("div");
-    seatsBottom.className = "seat-row";
-    const half = Math.ceil(seatCount / 2);
+    // テーブルの座席配置ロジック
+    if (isSpecialTable) {
+      const seatsTop = document.createElement("div");
+      seatsTop.className = "seat-row";
+      for (let i = 0; i < seatCount; i++) {
+        seatsTop.appendChild(createSeat(i, tableNum));
+      }
+      const table = document.createElement("div");
+      table.className = "table";
+      table.innerText = tableLabel;
+      block.appendChild(seatsTop);
+      block.appendChild(table);
+      return block;
+    }
 
-    for (let i = 0; i < half; i++) {
-      seatsTop.appendChild(createSeat(i, tableNum));
-    }
-    const table = document.createElement("div");
-    table.className = "table";
-    table.innerText = tableLabel;
-    for (let i = half; i < seatCount; i++) {
-      seatsBottom.appendChild(createSeat(i, tableNum));
-    }
-    block.appendChild(seatsTop);
-    block.appendChild(table);
-    if (seatCount > half) block.appendChild(seatsBottom);
-    return block;
-  }
+    const seatsTop = document.createElement("div");
+    seatsTop.className = "seat-row";
+    const seatsBottom = document.createElement("div");
+    seatsBottom.className = "seat-row";
+    const half = Math.ceil(seatCount / 2);
 
-  // 画面全体のテーブルを再描画
-  function renderTables() {
-    const left = document.getElementById("left-column");
-    const middle = document.getElementById("middle-column");
-    const right = document.getElementById("right-column");
+    for (let i = 0; i < half; i++) {
+      seatsTop.appendChild(createSeat(i, tableNum));
+    }
+    const table = document.createElement("div");
+    table.className = "table";
+    table.innerText = tableLabel;
+    for (let i = half; i < seatCount; i++) {
+      seatsBottom.appendChild(createSeat(i, tableNum));
+    }
+    block.appendChild(seatsTop);
+    block.appendChild(table);
+    if (seatCount > half) block.appendChild(seatsBottom);
+    return block;
+  }
 
-    [left, middle, right].forEach(el => el.innerHTML = "");
+  // 画面全体のテーブルを再描画
+  function renderTables() {
+    const left = document.getElementById("left-column");
+    const middle = document.getElementById("middle-column");
+    const right = document.getElementById("right-column");
 
-    let index = 0;
+    [left, middle, right].forEach(el => el.innerHTML = "");
 
-    for (let i = 0; i < tableCounts[0]; i++) {
-      left.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[1]; i++) {
-      middle.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[2]; i++) {
-      right.appendChild(createTableBlock(index++));
-    }
-    
-    updateCapacityDisplay();
-  }
-  
-  // 7. Firebaseデータリスナー
+    let index = 0;
 
-  onValue(seatsRef, (snapshot) => {
-    document.getElementById("loading-overlay").style.display = 'none';
-    seatsData = snapshot.val() || {};
-    renderTables(); 
-  }, (error) => {
-    console.error("Firebase connection error: ", error);
-    showMessage("❌ データベース接続エラーが発生しました。", true);
-    document.getElementById("loading-overlay").innerHTML = '<p style="color:red; font-size: 18px;">❌ データベース接続エラー</p>';
-  });
+    for (let i = 0; i < tableCounts[0]; i++) {
+      left.appendChild(createTableBlock(index++));
+    }
+    for (let i = 0; i < tableCounts[1]; i++) {
+      middle.appendChild(createTableBlock(index++));
+    }
+    for (let i = 0; i < tableCounts[2]; i++) {
+      right.appendChild(createTableBlock(index++));
+    }
+    
+    updateCapacityDisplay();
+  }
+  
+  // =================================================================
+  // 7. Firebaseデータリスナー
+  // =================================================================
+
+  // onValue を使用してデータ変更を監視
+  onValue(seatsRef, (snapshot) => {
+    // ローディング画面を非表示にする
+    document.getElementById("loading-overlay").style.display = 'none';
+
+    // スナップショットから現在の全席の状態を取得
+    seatsData = snapshot.val() || {};
+    // 取得したデータに基づいてUIを再描画
+    renderTables(); 
+  }, (error) => {
+    console.error("Firebase connection error: ", error);
+    showMessage("❌ データベース接続エラーが発生しました。", true);
+    document.getElementById("loading-overlay").innerHTML = '<p style="color:red; font-size: 18px;">❌ データベース接続エラー</p>';
+  });
 
 </script>
 
 </body>
 </html>
+
