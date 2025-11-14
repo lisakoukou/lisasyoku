@@ -7,7 +7,6 @@
   <style>
     body {
       font-family: "游ゴシック", sans-serif;
-      /* 濃いオレンジ系グラデーション背景 */
       background: linear-gradient(135deg, #b35d00 0%, #803d00 100%);
       padding: 1rem;
       margin: 0;
@@ -20,7 +19,7 @@
     form {
       max-width: 500px;
       width: 100%;
-      background: #ffcc99; /* 明るめオレンジ */
+      background: #ffcc99;
       padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 0 15px rgba(179, 93, 0, 0.6);
@@ -29,7 +28,7 @@
     }
 
     h1 {
-      color: #fff3e0; /* 薄いクリーム色で背景に映える */
+      color: #fff3e0;
       text-align: center;
       font-size: 1.8rem;
       margin-bottom: 1.5rem;
@@ -58,7 +57,7 @@
     }
 
     input[type="submit"] {
-      background-color: #b35d00; /* 濃いオレンジ */
+      background-color: #b35d00;
       color: white;
       padding: 0.75rem;
       border: none;
@@ -71,7 +70,7 @@
     }
 
     input[type="submit"]:hover {
-      background-color: #803d00; /* さらに濃いオレンジ */
+      background-color: #803d00;
     }
 
     #message-box {
@@ -79,7 +78,7 @@
         padding: 0.75rem;
         border-radius: 4px;
         color: white;
-        background-color: #2ecc71; /* Success Green */
+        background-color: #2ecc71;
         text-align: center;
         display: none;
     }
@@ -131,14 +130,12 @@
 
     <input type="submit" value="予約情報を保存して席マップへ">
     
-    <!-- リンクを index.html (席マップ) に変更 -->
     <a href="index.html" class="back-button">
         席マップに戻る
     </a>
   </form>
   
   <script>
-    // ユーザーIDの取得/生成 (index.htmlと共通)
     const getUserId = () => {
         let userId = localStorage.getItem('currentUserId');
         if (!userId) {
@@ -151,9 +148,8 @@
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('reservation-form');
         const messageBox = document.getElementById('message-box');
-        getUserId(); // ページロード時にユーザーIDを確保
+        getUserId();
         
-        // localStorageに情報があればフォームに初期値をセット
         const existingDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
         if (existingDetails) {
             document.getElementById('name').value = existingDetails.name || '';
@@ -161,7 +157,6 @@
             document.getElementById('time').value = existingDetails.time || '';
         }
         
-        // フォーム送信時の処理
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             
@@ -176,20 +171,26 @@
                 return;
             }
             
+            const allowedDomain = '@gmail.com'; 
+            if (!email.toLowerCase().includes(allowedDomain) || email.indexOf('@') !== email.lastIndexOf('@')) {
+                messageBox.style.backgroundColor = '#e74c3c';
+                messageBox.textContent = `🚨 有効なメールアドレスを入力してください。（例: user${allowedDomain}）`;
+                messageBox.style.display = 'block';
+                return;
+            }
+            
             const userDetails = {
                 name: name,
                 email: email,
                 time: time
             };
             
-            // ユーザーの詳細情報をlocalStorageに保存
             localStorage.setItem('currentUserDetails', JSON.stringify(userDetails));
             
             messageBox.style.backgroundColor = '#2ecc71';
             messageBox.textContent = '予約者情報を保存しました。席マップに戻って席を選んでください。';
             messageBox.style.display = 'block';
             
-            // 保存後、席マップ(index.html)に自動遷移
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 1500);
@@ -199,5 +200,4 @@
 
 </body>
 </html>
-
 
