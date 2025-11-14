@@ -163,6 +163,7 @@
     </button>
 </div>
 
+
 <p id="total-seats-status" class="text-lg font-medium mb-4">
     仮予約: <span id="reserved-count" class="font-bold text-orange-600">0</span> 席 (個人上限 / <span id="max-reservation" class="font-bold text-red-600">6</span> 席まで)
     <span class="mx-2">|</span>
@@ -176,7 +177,7 @@
 </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
@@ -192,7 +193,8 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const seatsRef = ref(db, 'seats'); 
-  
+  const lastClearRef = ref(db, 'lastClearTimestamp');
+
   const getUserId = () => {
     let userId = localStorage.getItem('currentUserId');
     if (!userId) {
@@ -478,8 +480,44 @@
     updateCapacityDisplay();
   }
   
-  import { set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  // 毎日PM8時に全ての席を自動キャンセルする関数
+  function checkAndClearAllSeats(lastClearTime) {
+      const now = new Date();
+      const clearTimeHour = 20; // 20時 (PM8時)
+      
+      let lastClear = new Date(lastClearTime);
+      
+      // 今日のキャンセル時刻を設定
+      let todayClear = new Date(now);
+      todayClear.setHours(clearTimeHour, 0, 0, 0);
 
+      // 最終クリア時刻が今日のクリア時刻より後であれば、明日のクリア時刻を見る
+      if (lastClear.getTime() > todayClear.getTime()) {
+          todayClear.setDate(todayClear.getDate() + 1);
+      }
+      
+      // まだ今日のクリア時刻が来ていない、または最終クリア時刻が今日のクリア時刻より新しい場合はキャンセルしない
+      if (now.getTime() < todayClear.getTime()) {
+          return Promise.resolve(false);
+      }
+
+      // 最終クリア時刻が24時間以上前、または未設定で、かつクリア時刻を過ぎている場合
+      console.log("PM8:00を過ぎました。全席を自動キャンセルします。");
+      
+      // 全席を削除し、最終クリア時刻を更新
+      return set(seatsRef, null)
+          .then(() => set(lastClearRef, serverTimestamp()))
+          .then(() => {
+              showMessage("🔔 自動キャンセル完了: 毎日PM8:00リセットにより、全予約がキャンセルされました。", true);
+              return true; 
+          })
+          .catch(error => {
+              console.error("Auto clear failed:", error);
+              return false;
+          });
+  }
+
+  // onValue を使用してデータ変更を監視
   onValue(seatsRef, (snapshot) => {
     document.getElementById("loading-overlay").style.display = 'none';
 
@@ -487,18 +525,20 @@
     let updates = {}; 
 
     const currentTime = Date.now();
-    let hasExpiredSeats = false;
+    let hasExpiredTempSeats = false;
 
+    // 1. 仮予約TTLチェック（10分間）
     for (const seatKey in rawSeatsData) {
         const seat = rawSeatsData[seatKey];
         if (seat && seat.isTemp && seat.timestamp && (currentTime - seat.timestamp > TEMP_RESERVATION_TTL_SECONDS * 1000)) {
             updates[seatKey] = null;
-            hasExpiredSeats = true;
+            hasExpiredTempSeats = true;
             delete rawSeatsData[seatKey];
         }
     }
     
-    if (hasExpiredSeats) {
+    // 期限切れの席があればまとめてDBから削除
+    if (hasExpiredTempSeats) {
         set(seatsRef, updates).catch(error => {
             console.error("Failed to clear expired reservations:", error);
         });
@@ -511,10 +551,21 @@
     showMessage("❌ データベース接続エラーが発生しました。", true);
     document.getElementById("loading-overlay").innerHTML = '<p style="color:red; font-size: 18px;">❌ データベース接続エラー</p>';
   });
+  
+  // 2. 毎日PM8時 自動キャンセルチェック
+  onValue(lastClearRef, (snapshot) => {
+      const lastClearTimestamp = snapshot.val() || 0;
+      checkAndClearAllSeats(lastClearTimestamp)
+          .then(cleared => {
+              if (cleared) {
+                  // クリアされた場合、次のonValueでseatsRefがnullになり再描画される
+              }
+          })
+          .catch(e => console.error("Auto clear error check:", e));
+  });
 
 </script>
 
 </body>
 </html>
-
 
