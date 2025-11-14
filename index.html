@@ -1,478 +1,203 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>食堂予約（リアルタイム・トランザクション版）</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* 既存のCSSをTailwindに置き換えつつ、カスタムスタイルを追加 */
-    body {
-      font-family: 'Inter', sans-serif;
-      padding: 20px;
-      text-align: center;
-      /* 🌟 背景画像の設定 🌟 */
-      background-image: url('./、保坂　拝啓.jpg'); /* あなたがアップロードしたファイル名 */
-      background-repeat: repeat; /* 画像を繰り返す */
-      background-size: 200px auto; /* 画像サイズを調整 */
-      background-color: #f9f7f1; /* 代替色 */
-      /* 🌟 ここまで背景画像の設定 🌟 */
-      min-height: 100vh;
-    }
-    /* コンテンツ部分の背景を不透明にして読みやすくする */
-    .container-wrapper {
-        background-color: rgba(255, 255, 255, 0.9); /* 白の半透明 */
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        margin: 20px auto;
-        max-width: 1200px;
-    }
-    .columns {
-      display: flex;
-      flex-wrap: wrap; 
-      justify-content: center;
-      gap: 30px;
-      padding-bottom: 50px;
-    }
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-      min-width: 250px; 
-    }
-    .table-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      background-color: #ffffff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
-    .seat-row {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-    }
-    .seat {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      background-color: #000000;
-      color: #ffffff;
-      font-weight: bold;
-      font-size: 14px;
-      line-height: 35px;
-      text-align: center;
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.3s, transform 0.1s, box-shadow 0.1s;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      position: relative; /* ツールチップの基点 */
-    }
-    .seat:hover:not(.occupied) {
-        background-color: #333;
-        transform: scale(1.05);
-    }
-    .seat.occupied {
-      background-color: #90ee90; /* ライトグリーン */
-      color: #000000;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    /* 自分自身の予約席 */
-    .seat.mine {
-        background-color: #5bc0eb; /* スカイブルー */
-        color: white;
-    }
-    .table {
-      width: 120px;
-      height: 45px;
-      background-color: #c4c4c4;
-      border: 2px solid #999;
-      border-radius: 8px;
-      line-height: 45px;
-      font-weight: bold;
-      color: #333;
-      user-select: none;
-      margin: 5px 0;
-    }
-    /* ツールチップスタイル */
-    .tooltip {
-        visibility: hidden;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px 10px;
-        position: absolute;
-        z-index: 1;
-        bottom: 125%; /* 席の上 */
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 12px;
-        line-height: 1.2;
-    }
-    .seat.occupied:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-    .tooltip::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: #333 transparent transparent transparent;
-    }
-    @media (max-width: 768px) {
-        .columns { flex-direction: column; gap: 20px; }
-        .column { min-width: 90%; margin: 0 auto; }
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>王の食堂 予約フォーム</title>
+  <style>
+    body {
+      font-family: "游ゴシック", sans-serif;
+      background: linear-gradient(135deg, #b35d00 0%, #803d00 100%);
+      padding: 1rem;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    form {
+      max-width: 500px;
+      width: 100%;
+      background: #ffcc99;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(179, 93, 0, 0.6);
+      color: #4a2b00;
+      z-index: 10;
+    }
+
+    h1 {
+      color: #fff3e0;
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+      width: 100%;
+      position: absolute;
+      top: 1rem;
+      left: 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: #4a2b00;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+      border: 1px solid #cc8a32;
+      border-radius: 4px;
+    }
+
+    input[type="submit"] {
+      background-color: #b35d00;
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 4px;
+      margin-top: 1.5rem;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #803d00;
+    }
+
+    #message-box {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 4px;
+        color: white;
+        background-color: #2ecc71;
+        text-align: center;
+        display: none;
+    }
+    
+    .back-button {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        color: #b35d00;
+        text-decoration: underline;
+        font-weight: bold;
+    }
+
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+        position: static;
+        margin-bottom: 1rem;
+      }
+
+      body {
+        padding: 1rem 0.5rem;
+        align-items: flex-start;
+      }
+
+      input, select, textarea, input[type="submit"] {
+        font-size: 0.95rem;
+        padding: 0.5rem;
+      }
+    }
+  </style>
 </head>
+<body>
 
-<body class="bg-gray-50 flex flex-col items-center p-4">
+  <h1>王の食卓 予約フォーム</h1>
 
-<div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-80 flex justify-center items-center flex-col z-50">
-    <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" style="background: none;">
-        <circle cx="50" cy="50" r="40" stroke="#5bc0eb" stroke-width="8" fill="none" stroke-linecap="round" 
-        style="stroke-dasharray: 251.2; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite, rotate 2s linear infinite;"></circle>
-    </svg>
-    <p class="mt-4 text-lg text-blue-500">Firebaseに接続中...</p>
-</div>
+  <form id="reservation-form">
+    <label for="name">名前：</label>
+    <input type="text" id="name" name="name" required>
 
-<div id="message-box" class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-all duration-500 transform translate-x-full opacity-0" style="min-width: 250px;"></div>
+    <label for="email">メール（学校のgmail）：</label>
+    <input type="email" id="email" name="email" required>
 
-<div class="container-wrapper">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">食堂予約（リアルタイム・トランザクション版）</h1>
+    <label for="time">予約したい時間：</label>
+    <input type="time" id="time" name="time" required>
+    
+    <div id="message-box"></div>
 
-    <a href="yoyaku.html" class="link-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 mb-4 inline-block">
-      予約情報入力/変更 (必須)
+    <input type="submit" value="予約情報を保存して席マップへ">
+    
+    <a href="index.html" class="back-button">
+        席マップに戻る
     </a>
-
-    <div id="user-info" class="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto">
-        <p>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline">予約情報入力ページ</a>で名前などを入力してください。</p>
-    </div>
-
-
-    <p id="total-seats-status" class="text-lg font-medium mb-4">
-        現在の予約数: <span id="reserved-count" class="font-bold text-green-600">0</span> 席 (個人予約 / <span id="max-reservation" class="font-bold text-red-600">6</span> 席まで)
-        <span class="mx-2">|</span>
-        総予約: <span id="total-occupied-count" class="font-bold">0</span> / <span id="total-capacity-count">171</span> 席
-    </p>
-
-    <div class="columns">
-      <div class="column" id="left-column"></div>
-      <div class="column" id="middle-column"></div>
-      <div class="column" id="right-column"></div>
-    </div>
-</div>
-
-<script type="module">
-  // 1. FirebaseモジュールをCDN経由でインポート
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-
-  // 2. Firebase設定情報 (ユーザー提供の設定を引き継ぎ)
-  const firebaseConfig = {
-    apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
-    authDomain: "lisasyokudo.firebaseapp.com",
-    databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "lisasyokudo",
-    storageBucket: "lisasyokudo.firebasestorage.app",
-    messagingSenderId: "94391681633",
-    appId: "1:94391681633:web:515d6d17c9567e153b2020",
-    measurementId: "G-HBNXQBQ4PR"
-  };
-
-  // 3. Firebase初期化とDatabase参照の取得
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const seatsRef = ref(db, 'seats'); 
-  
-  // =================================================================
-  // 4. ユーザー識別と状態管理
-  // =================================================================
-
-  // ユーザーIDの取得/生成
-  const getUserId = () => {
-    let userId = localStorage.getItem('currentUserId');
-    if (!userId) {
-      userId = crypto.randomUUID();
-      localStorage.setItem('currentUserId', userId);
-    }
-    return userId;
-  };
-
-  const currentUserId = getUserId();
-  const MAX_RESERVATION_PER_USER = 6;
-  
-  // localStorageからユーザーの詳細情報を取得
-  let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
-  
-  let seatsData = {}; // Firebaseから取得した全席の状態 
-
-  // カスタムメッセージボックス表示
-  function showMessage(text, isError = false) {
-      const msgBox = document.getElementById('message-box');
-      msgBox.textContent = text;
-      msgBox.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
-      msgBox.style.opacity = '1';
-      msgBox.style.transform = 'translate-x-0';
-
-      setTimeout(() => {
-          msgBox.style.opacity = '0';
-          msgBox.style.transform = 'translate-x-full';
-      }, 3000);
-  }
-
-  // ユーザー情報の表示を更新
-  function updateUserInfoDisplay() {
-    const userInfoDiv = document.getElementById('user-info');
-    if (currentUserDetails && currentUserDetails.name) {
-        userInfoDiv.className = "mb-4 p-3 bg-blue-100 border border-blue-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto";
-        userInfoDiv.innerHTML = `
-            <p><strong class="text-blue-600">現在の予約者情報:</strong></p>
-            <p><strong>名前:</strong> ${currentUserDetails.name}</p>
-            <p><strong>メール:</strong> ${currentUserDetails.email}</p>
-            <p><strong>時間:</strong> ${currentUserDetails.time}</p>
-            <p class="text-xs text-gray-500">（この情報で予約されます。変更は「予約情報入力/変更」から）</p>
-        `;
-    } else {
-        // 詳細情報がない場合、予約処理をブロックするため赤く強調
-        userInfoDiv.className = "mb-4 p-3 bg-red-100 border border-red-400 rounded-lg text-sm text-red-700 w-full max-w-xl mx-auto";
-        userInfoDiv.innerHTML = `<p class="font-bold">🚨 予約者情報が見つかりません。</p><p>席を予約する前に、<a href="yoyaku.html" class="text-red-600 underline">予約情報入力ページ</a>で名前、メール、時間を入力してください。</p>`;
-    }
-  }
-  updateUserInfoDisplay();
-  
-  // =================================================================
-  // 5. 予約ロジックとデータ管理
-  // =================================================================
-
-  const tableCounts = [7, 10, 12];
-  const totalTables = tableCounts.reduce((a, b) => a + b, 0); 
-  const seatCounts = Array.from({ length: totalTables }, (_, i) => i === totalTables - 1 ? 3 : 6);
-  const TOTAL_CAPACITY = seatCounts.reduce((a, b) => a + b, 0); 
-
-  // ヘルパー: テーブル番号と席番号からデータベースキーを生成
-  function getSeatKey(tableNum, seatIndex) {
-    return `T${tableNum + 1}-S${seatIndex + 1}`; 
-  }
-
-  // 現在のユーザーが予約している席数をカウント
-  function countCurrentUserOccupiedSeats() {
-    return Object.values(seatsData).filter(
-        seat => seat && seat.reservedByUserId === currentUserId
-    ).length;
-  }
-  
-  // 総予約席数をカウント
-  function countTotalOccupiedSeats() {
-    return Object.values(seatsData).filter(seat => seat && seat.isOccupied).length;
-  }
-
-  // UI上の席数表示を更新
-  function updateCapacityDisplay() {
-    const userReservedCount = countCurrentUserOccupiedSeats();
-    document.getElementById("reserved-count").textContent = userReservedCount;
-    document.getElementById("total-occupied-count").textContent = countTotalOccupiedSeats();
-    document.getElementById("max-reservation").textContent = MAX_RESERVATION_PER_USER;
-    document.getElementById("total-capacity-count").textContent = TOTAL_CAPACITY;
-  }
-
-  // 席の状態を切り替える（トランザクション処理）
-  function toggleSeatStatus(tableNum, seatIndex) {
-    if (!currentUserDetails || !currentUserDetails.name) {
-        showMessage("🚨 エラー: 予約する前に、予約情報入力ページで名前などを入力してください。", true);
-        return;
-    }
-
-    const seatKey = getSeatKey(tableNum, seatIndex);
-    const seatRef = ref(db, 'seats/' + seatKey);
-
-    runTransaction(seatRef, (currentSeat) => {
-      const userReservedCount = countCurrentUserOccupiedSeats();
-      
-      if (currentSeat && currentSeat.isOccupied && currentSeat.reservedByUserId === currentUserId) {
-        // 1. キャンセル処理 (現在のユーザーが予約している場合)
-        return null; // DBからキーを削除してキャンセル
-        
-      } else if (currentSeat && currentSeat.isOccupied) {
-        // 2. 競合エラー (他のユーザーが予約済みの場合)
-        // トランザクションを中断 (null, undefined, または現在の値を返すと中断)
-        setTimeout(() => { showMessage(`🚨 競合エラー: この席は${currentSeat.reservedByName || '他の人'}に先に予約されました。`, true); }, 0); 
-        return currentSeat; // 値を変更しない
-
-      } else {
-        // 3. 新規予約処理 (空席の場合)
-        if (userReservedCount >= MAX_RESERVATION_PER_USER) {
-          showMessage(`⚠️ 予約上限: 最大${MAX_RESERVATION_PER_USER}席までしか予約できません。`, true);
-          return currentSeat; // 変更しない
-        }
-
-        // 予約成功
-        return {
-          isOccupied: true,
-          reservedByUserId: currentUserId,
-          reservedByName: currentUserDetails.name,
-          reservedByEmail: currentUserDetails.email,
-          reservationTime: currentUserDetails.time,
-          timestamp: serverTimestamp() // 予約日時を記録
-        };
-      }
-    }).then((result) => {
-        if (result.committed) {
-            if (result.snapshot.val() === null) {
-                showMessage("✅ 予約をキャンセルしました。");
-            } else if (result.snapshot.val().reservedByUserId === currentUserId) {
-                showMessage("🎉 席を予約しました！");
-            }
-        }
-    }).catch(error => {
-      console.error("Transaction failed: ", error);
-      showMessage("❌ 予約処理中にエラーが発生しました。インターネット接続を確認してください。", true);
-    });
-  }
-
-  // =================================================================
-  // 6. UIレンダリング
-  // =================================================================
-  
-  // 席のDOM要素を作成
-  function createSeat(seatIndex, tableNum) {
-    const seatKey = getSeatKey(tableNum, seatIndex);
-    const seatInfo = seatsData[seatKey];
-    const isOccupied = seatInfo && seatInfo.isOccupied;
-    const isMine = isOccupied && seatInfo.reservedByUserId === currentUserId;
-
-    const seat = document.createElement("div");
-    seat.className = "seat";
-    seat.innerText = seatIndex + 1;
-    
-    if (isOccupied) {
-        seat.classList.add("occupied");
-        if (isMine) {
-            seat.classList.add("mine");
-        }
-        
-        // ツールチップを作成し、予約者情報を表示
-        const tooltip = document.createElement("span");
-        tooltip.className = "tooltip";
-        
-        const name = seatInfo.reservedByName || '不明なユーザー';
-        const time = seatInfo.reservationTime || '時間未定';
-        
-        // 予約者が自分自身の場合は「自分」と表示
-        const reservedByText = isMine ? 'あなた (クリックで解除)' : name;
-        
-        tooltip.innerHTML = `予約者: ${reservedByText}<br>時間: ${time}`;
-        seat.appendChild(tooltip);
-
-    }
-
-    seat.onclick = () => {
-      toggleSeatStatus(tableNum, seatIndex); 
-    };
-    return seat;
-  }
-
-  // テーブルブロックのDOM要素を作成 (変更なし)
-  function createTableBlock(tableNum) {
-    const block = document.createElement("div");
-    block.className = "table-block";
-
-    const seatCount = seatCounts[tableNum];
-    const isSpecialTable = (tableNum === totalTables - 1 && seatCount === 3);
-    const tableLabel = `机 ${tableNum + 1} (${seatCount}席)`;
-
-    // テーブルの座席配置ロジック
-    if (isSpecialTable) {
-      const seatsTop = document.createElement("div");
-      seatsTop.className = "seat-row";
-      for (let i = 0; i < seatCount; i++) {
-        seatsTop.appendChild(createSeat(i, tableNum));
-      }
-      const table = document.createElement("div");
-      table.className = "table";
-      table.innerText = tableLabel;
-      block.appendChild(seatsTop);
-      block.appendChild(table);
-      return block;
-    }
-
-    const seatsTop = document.createElement("div");
-    seatsTop.className = "seat-row";
-    const seatsBottom = document.createElement("div");
-    seatsBottom.className = "seat-row";
-    const half = Math.ceil(seatCount / 2);
-
-    for (let i = 0; i < half; i++) {
-      seatsTop.appendChild(createSeat(i, tableNum));
-    }
-    const table = document.createElement("div");
-    table.className = "table";
-    table.innerText = tableLabel;
-    for (let i = half; i < seatCount; i++) {
-      seatsBottom.appendChild(createSeat(i, tableNum));
-    }
-    block.appendChild(seatsTop);
-    block.appendChild(table);
-    if (seatCount > half) block.appendChild(seatsBottom);
-    return block;
-  }
-
-  // 画面全体のテーブルを再描画
-  function renderTables() {
-    const left = document.getElementById("left-column");
-    const middle = document.getElementById("middle-column");
-    const right = document.getElementById("right-column");
-
-    [left, middle, right].forEach(el => el.innerHTML = "");
-
-    let index = 0;
-
-    for (let i = 0; i < tableCounts[0]; i++) {
-      left.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[1]; i++) {
-      middle.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[2]; i++) {
-      right.appendChild(createTableBlock(index++));
-    }
-    
-    updateCapacityDisplay();
-  }
-  
-  // =================================================================
-  // 7. Firebaseデータリスナー
-  // =================================================================
-
-  // onValue を使用してデータ変更を監視
-  onValue(seatsRef, (snapshot) => {
-    // ローディング画面を非表示にする
-    document.getElementById("loading-overlay").style.display = 'none';
-
-    // スナップショットから現在の全席の状態を取得
-    seatsData = snapshot.val() || {};
-    // 取得したデータに基づいてUIを再描画
-    renderTables(); 
-  }, (error) => {
-    console.error("Firebase connection error: ", error);
-    showMessage("❌ データベース接続エラーが発生しました。", true);
-    document.getElementById("loading-overlay").innerHTML = '<p style="color:red; font-size: 18px;">❌ データベース接続エラー</p>';
-  });
-
-</script>
+  </form>
+  
+  <script>
+    const getUserId = () => {
+        let userId = localStorage.getItem('currentUserId');
+        if (!userId) {
+            userId = crypto.randomUUID();
+            localStorage.setItem('currentUserId', userId);
+        }
+        return userId;
+    };
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('reservation-form');
+        const messageBox = document.getElementById('message-box');
+        getUserId();
+        
+        const existingDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
+        if (existingDetails) {
+            document.getElementById('name').value = existingDetails.name || '';
+            document.getElementById('email').value = existingDetails.email || '';
+            document.getElementById('time').value = existingDetails.time || '';
+        }
+        
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const time = document.getElementById('time').value;
+            
+            if (!name || !email || !time) {
+                messageBox.style.backgroundColor = '#e74c3c';
+                messageBox.textContent = 'すべてのフィールドを入力してください。';
+                messageBox.style.display = 'block';
+                return;
+            }
+            
+            const allowedDomain = '@gmail.com'; 
+            if (!email.toLowerCase().includes(allowedDomain) || email.indexOf('@') !== email.lastIndexOf('@')) {
+                messageBox.style.backgroundColor = '#e74c3c';
+                messageBox.textContent = `🚨 有効なメールアドレスを入力してください。（例: user${allowedDomain}）`;
+                messageBox.style.display = 'block';
+                return;
+            }
+            
+            const userDetails = {
+                name: name,
+                email: email,
+                time: time
+            };
+            
+            localStorage.setItem('currentUserDetails', JSON.stringify(userDetails));
+            
+            messageBox.style.backgroundColor = '#2ecc71';
+            messageBox.textContent = '予約者情報を保存しました。席マップに戻って席を選んでください。';
+            messageBox.style.display = 'block';
+            
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        });
+    });
+  </script>
 
 </body>
 </html>
+
