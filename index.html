@@ -11,12 +11,23 @@
       font-family: 'Inter', sans-serif;
       padding: 20px;
       text-align: center;
-      /* 🌟 背景画像の設定 🌟 */
-      background-image: url('./、保坂　拝啓.jpg'); /* あなたがアップロードしたファイル名 */
-      background-repeat: repeat; /* 画像を繰り返す */
-      background-size: 200px auto; /* 画像サイズを調整 */
-      background-color: #f9f7f1; /* 代替色 */
-      /* 🌟 ここまで背景画像の設定 🌟 */
+      /* 🌟 ここから背景パターンをCSSで生成 🌟 */
+      background-color: #ff8c00; /* ベースのオレンジ色 */
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.08) 0,
+        rgba(255, 255, 255, 0.08) 10px,
+        transparent 10px,
+        transparent 20px
+      ), repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.08) 0,
+        rgba(255, 255, 255, 0.08) 10px,
+        transparent 10px,
+        transparent 20px
+      );
+        background-size: 40px 40px; /* パターンの繰り返しサイズ */
+      /* 🌟 ここまで背景パターン 🌟 */
       min-height: 100vh;
     }
     /* コンテンツ部分の背景を不透明にして読みやすくする */
@@ -368,111 +379,4 @@
         const tooltip = document.createElement("span");
         tooltip.className = "tooltip";
         
-        const name = seatInfo.reservedByName || '不明なユーザー';
-        const time = seatInfo.reservationTime || '時間未定';
-        
-        // 予約者が自分自身の場合は「自分」と表示
-        const reservedByText = isMine ? 'あなた (クリックで解除)' : name;
-        
-        tooltip.innerHTML = `予約者: ${reservedByText}<br>時間: ${time}`;
-        seat.appendChild(tooltip);
-
-    }
-
-    seat.onclick = () => {
-      toggleSeatStatus(tableNum, seatIndex); 
-    };
-    return seat;
-  }
-
-  // テーブルブロックのDOM要素を作成 (変更なし)
-  function createTableBlock(tableNum) {
-    const block = document.createElement("div");
-    block.className = "table-block";
-
-    const seatCount = seatCounts[tableNum];
-    const isSpecialTable = (tableNum === totalTables - 1 && seatCount === 3);
-    const tableLabel = `机 ${tableNum + 1} (${seatCount}席)`;
-
-    // テーブルの座席配置ロジック
-    if (isSpecialTable) {
-      const seatsTop = document.createElement("div");
-      seatsTop.className = "seat-row";
-      for (let i = 0; i < seatCount; i++) {
-        seatsTop.appendChild(createSeat(i, tableNum));
-      }
-      const table = document.createElement("div");
-      table.className = "table";
-      table.innerText = tableLabel;
-      block.appendChild(seatsTop);
-      block.appendChild(table);
-      return block;
-    }
-
-    const seatsTop = document.createElement("div");
-    seatsTop.className = "seat-row";
-    const seatsBottom = document.createElement("div");
-    seatsBottom.className = "seat-row";
-    const half = Math.ceil(seatCount / 2);
-
-    for (let i = 0; i < half; i++) {
-      seatsTop.appendChild(createSeat(i, tableNum));
-    }
-    const table = document.createElement("div");
-    table.className = "table";
-    table.innerText = tableLabel;
-    for (let i = half; i < seatCount; i++) {
-      seatsBottom.appendChild(createSeat(i, tableNum));
-    }
-    block.appendChild(seatsTop);
-    block.appendChild(table);
-    if (seatCount > half) block.appendChild(seatsBottom);
-    return block;
-  }
-
-  // 画面全体のテーブルを再描画
-  function renderTables() {
-    const left = document.getElementById("left-column");
-    const middle = document.getElementById("middle-column");
-    const right = document.getElementById("right-column");
-
-    [left, middle, right].forEach(el => el.innerHTML = "");
-
-    let index = 0;
-
-    for (let i = 0; i < tableCounts[0]; i++) {
-      left.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[1]; i++) {
-      middle.appendChild(createTableBlock(index++));
-    }
-    for (let i = 0; i < tableCounts[2]; i++) {
-      right.appendChild(createTableBlock(index++));
-    }
-    
-    updateCapacityDisplay();
-  }
-  
-  // =================================================================
-  // 7. Firebaseデータリスナー
-  // =================================================================
-
-  // onValue を使用してデータ変更を監視
-  onValue(seatsRef, (snapshot) => {
-    // ローディング画面を非表示にする
-    document.getElementById("loading-overlay").style.display = 'none';
-
-    // スナップショットから現在の全席の状態を取得
-    seatsData = snapshot.val() || {};
-    // 取得したデータに基づいてUIを再描画
-    renderTables(); 
-  }, (error) => {
-    console.error("Firebase connection error: ", error);
-    showMessage("❌ データベース接続エラーが発生しました。", true);
-    document.getElementById("loading-overlay").innerHTML = '<p style="color:red; font-size: 18px;">❌ データベース接続エラー</p>';
-  });
-
-</script>
-
-</body>
-</html>
+        const name = seatInfo.reservedByName ||
