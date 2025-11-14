@@ -8,54 +8,58 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      padding: 5px; /* パディングをさらに減らす */
-      text-align: center;
+      padding: 5px;
+      text-align: center; /* 👈 全体の文字を中央揃え */
       background-color: #f9f7f1;
       min-height: 100vh;
+      display: flex; /* 👈 body自身もflexコンテナにして */
+      flex-direction: column;
+      align-items: center; /* 👈 コンテンツを水平中央に配置 */
     }
     /* 席のレイアウト全体を保持するための設定 */
     .columns {
       display: flex;
-      flex-wrap: nowrap; /* 横並びを維持 */
+      flex-wrap: nowrap;
       justify-content: center;
-      gap: 8px; /* カラム間のギャップをさらに減らす */
+      gap: 8px;
       padding-bottom: 30px;
-      min-width: 650px; /* レイアウトを維持するための最低幅を調整 */
+      min-width: 650px;
       margin: 0 auto;
-      overflow-x: auto; /* 画面からはみ出したらスクロール可能 */
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      padding: 0 10px; /* 👈 左右に少しパディングを追加し、端に張り付くのを防ぐ */
     }
     .column {
       display: flex;
       flex-direction: column;
-      gap: 8px; /* テーブル間のギャップをさらに減らす */
-      min-width: 150px; /* カラムの最低幅を調整 */
+      gap: 8px;
+      min-width: 150px;
     }
     .table-block {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px; /* 要素間のギャップを減らす */
-      padding: 5px; /* パディングを減らす */
+      gap: 5px;
+      padding: 5px;
       border: 1px solid #ddd;
-      border-radius: 8px; /* 角丸を小さく */
+      border-radius: 8px;
       background-color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* 影を小さく */
-      min-width: 120px; /* テーブルブロックの最小幅を調整 */
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      min-width: 120px;
     }
     .seat-row {
       display: flex;
-      gap: 4px; /* 席間のスペースをさらに減らす */
+      gap: 4px;
       justify-content: center;
     }
     .seat {
-      width: 25px; /* 席のサイズをさらに小さく */
+      width: 25px;
       height: 25px;
       border-radius: 50%;
       background-color: #000000;
       color: #ffffff;
       font-weight: bold;
-      font-size: 10px; /* フォントサイズを小さく */
+      font-size: 10px;
       line-height: 25px;
       text-align: center;
       cursor: pointer;
@@ -66,7 +70,7 @@
     }
     .seat:hover:not(.occupied):not(.temp-reserved) {
         background-color: #333;
-        transform: scale(1.08); /* ホバー時の拡大率を微調整 */
+        transform: scale(1.08);
     }
     .seat.occupied {
       background-color: #90ee90;
@@ -89,8 +93,8 @@
     }
     
     .table {
-      width: 80px; /* テーブルの幅を小さく */
-      height: 30px; /* テーブルの高さを小さく */
+      width: 80px;
+      height: 30px;
       background-color: #c4c4c4;
       border: 1px solid #999;
       border-radius: 6px;
@@ -99,8 +103,10 @@
       color: #333;
       user-select: none;
       margin: 3px 0;
-      font-size: 12px; /* テーブルラベルのフォントサイズを小さく */
+      font-size: 12px;
     }
+    
+    /* ツールチップの表示位置と視認性を改善 */
     .tooltip {
         visibility: hidden;
         background-color: #333;
@@ -109,15 +115,18 @@
         border-radius: 4px;
         padding: 4px 8px;
         position: absolute;
-        z-index: 10;
-        bottom: 110%; /* 席から少し離す */
+        z-index: 100; /* 👈 z-indexを高くし、他の要素に隠されないようにする */
+        bottom: 110%; 
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
         opacity: 0;
         transition: opacity 0.3s;
-        font-size: 9px; /* ツールチップのフォントサイズをさらに小さく */
+        font-size: 9px; 
         line-height: 1.1;
+        /* 画面外にはみ出さないための調整 (モバイル対応) */
+        max-width: 150px; 
+        box-sizing: border-box;
     }
     .seat.occupied:hover .tooltip, .seat.temp-reserved:hover .tooltip {
         visibility: visible;
@@ -128,15 +137,17 @@
         position: absolute;
         top: 100%;
         left: 50%;
-        margin-left: -3px; /* ポインターを小さく */
+        margin-left: -3px;
         border-width: 4px;
         border-style: solid;
         border-color: #333 transparent transparent transparent;
     }
+    
     @media (max-width: 768px) {
+        /* UI要素を中央に保ちつつ、横スクロールを可能にする */
         .columns { 
             gap: 5px; 
-            min-width: 600px; /* スマホでも横スクロールで全体が見えるように最小幅を調整 */
+            min-width: 600px;
         }
         /* 主要なUI要素のフォントサイズ調整 */
         .text-3xl { font-size: 1.5rem; }
@@ -144,6 +155,13 @@
         #total-seats-status { font-size: 0.9rem; }
         #reservation-action button { padding: 0.6rem 1.5rem; font-size: 0.9rem; }
     }
+    
+    /* ヘッダー要素も中央揃えを維持するためにTailwindのmx-autoクラスを利用 */
+    .w-full.max-w-xl.mx-auto, .w-full.max-w-2xl.mx-auto {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
   </style>
 </head>
 
@@ -413,6 +431,7 @@
             reservedByText = 'あなた (確定済)';
         }
         
+        // ツールチップの内容
         tooltip.innerHTML = `${status}: ${reservedByText}<br>時間: ${time}`;
         seat.appendChild(tooltip);
 
@@ -582,3 +601,4 @@
 
 </body>
 </html>
+
