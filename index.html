@@ -8,55 +8,49 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      padding: 10px; /* パディングを少し減らす */
+      padding: 20px;
       text-align: center;
       background-color: #f9f7f1;
       min-height: 100vh;
     }
-    /* 席のレイアウト全体を保持するための設定 */
     .columns {
       display: flex;
-      flex-wrap: nowrap; /* 縦並びではなく横並びを維持 */
+      flex-wrap: wrap; 
       justify-content: center;
-      gap: 15px; /* ギャップを調整 */
+      gap: 30px;
       padding-bottom: 50px;
-      min-width: 700px; /* PCと同じ横幅を維持するための最低幅 */
-      margin: 0 auto;
-      overflow-x: auto; /* 画面からはみ出したらスクロール可能にする */
-      -webkit-overflow-scrolling: touch; /* iOSでのスムーズなスクロール */
     }
     .column {
       display: flex;
       flex-direction: column;
-      gap: 15px; /* ギャップを調整 */
-      min-width: 200px; /* 各カラムの最低幅 */
+      gap: 30px;
+      min-width: 250px; 
     }
     .table-block {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 10px;
+      gap: 10px;
+      padding: 15px;
       border: 1px solid #ddd;
       border-radius: 12px;
       background-color: #ffffff;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      min-width: 150px; /* テーブルブロックの最小幅 */
     }
     .seat-row {
       display: flex;
-      gap: 6px; /* 席間のスペースを減らす */
+      gap: 8px;
       justify-content: center;
     }
     .seat {
-      width: 30px; /* 席のサイズを少し小さく */
-      height: 30px;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
       background-color: #000000;
       color: #ffffff;
       font-weight: bold;
-      font-size: 12px; /* フォントサイズを小さく */
-      line-height: 30px;
+      font-size: 14px;
+      line-height: 35px;
       text-align: center;
       cursor: pointer;
       user-select: none;
@@ -89,17 +83,16 @@
     }
     
     .table {
-      width: 100px; /* テーブルの幅を小さく */
-      height: 40px;
+      width: 120px;
+      height: 45px;
       background-color: #c4c4c4;
       border: 2px solid #999;
       border-radius: 8px;
-      line-height: 40px;
+      line-height: 45px;
       font-weight: bold;
       color: #333;
       user-select: none;
       margin: 5px 0;
-      font-size: 14px;
     }
     .tooltip {
         visibility: hidden;
@@ -109,14 +102,14 @@
         border-radius: 6px;
         padding: 5px 10px;
         position: absolute;
-        z-index: 10; /* z-indexを上げて手前に表示 */
+        z-index: 1;
         bottom: 125%;
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
         opacity: 0;
         transition: opacity 0.3s;
-        font-size: 10px; /* ツールチップのフォントサイズを小さく */
+        font-size: 12px;
         line-height: 1.2;
     }
     .seat.occupied:hover .tooltip, .seat.temp-reserved:hover .tooltip {
@@ -133,12 +126,9 @@
         border-style: solid;
         border-color: #333 transparent transparent transparent;
     }
-    /* 768px以下の画面では、横スクロールを強制するために、メディアクエリを削除または調整 */
     @media (max-width: 768px) {
-        .columns { 
-            gap: 10px; 
-            min-width: 800px; /* スマホでも横スクロールで全体が見えるように、意図的に最小幅を広げる */
-        }
+        .columns { flex-direction: column; gap: 20px; }
+        .column { min-width: 90%; margin: 0 auto; }
     }
   </style>
 </head>
@@ -187,7 +177,7 @@
 </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
@@ -203,8 +193,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const seatsRef = ref(db, 'seats'); 
-  const lastClearRef = ref(db, 'lastClearTimestamp');
-
+  
   const getUserId = () => {
     let userId = localStorage.getItem('currentUserId');
     if (!userId) {
@@ -490,44 +479,8 @@
     updateCapacityDisplay();
   }
   
-  // 毎日PM8時に全ての席を自動キャンセルする関数
-  function checkAndClearAllSeats(lastClearTime) {
-      const now = new Date();
-      const clearTimeHour = 20; // 20時 (PM8時)
-      
-      let lastClear = new Date(lastClearTime);
-      
-      // 今日のキャンセル時刻を設定
-      let todayClear = new Date(now);
-      todayClear.setHours(clearTimeHour, 0, 0, 0);
+  import { set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-      // 最終クリア時刻が今日のクリア時刻より後であれば、明日のクリア時刻を見る
-      if (lastClear.getTime() > todayClear.getTime()) {
-          todayClear.setDate(todayClear.getDate() + 1);
-      }
-      
-      // まだ今日のクリア時刻が来ていない、または最終クリア時刻が今日のクリア時刻より新しい場合はキャンセルしない
-      if (now.getTime() < todayClear.getTime()) {
-          return Promise.resolve(false);
-      }
-
-      // 最終クリア時刻が24時間以上前、または未設定で、かつクリア時刻を過ぎている場合
-      console.log("PM8:00を過ぎました。全席を自動キャンセルします。");
-      
-      // 全席を削除し、最終クリア時刻を更新
-      return set(seatsRef, null)
-          .then(() => set(lastClearRef, serverTimestamp()))
-          .then(() => {
-              showMessage("🔔 自動キャンセル完了: 毎日PM8:00リセットにより、全予約がキャンセルされました。", true);
-              return true; 
-          })
-          .catch(error => {
-              console.error("Auto clear failed:", error);
-              return false;
-          });
-  }
-
-  // onValue を使用してデータ変更を監視
   onValue(seatsRef, (snapshot) => {
     document.getElementById("loading-overlay").style.display = 'none';
 
@@ -535,20 +488,18 @@
     let updates = {}; 
 
     const currentTime = Date.now();
-    let hasExpiredTempSeats = false;
+    let hasExpiredSeats = false;
 
-    // 1. 仮予約TTLチェック（10分間）
     for (const seatKey in rawSeatsData) {
         const seat = rawSeatsData[seatKey];
         if (seat && seat.isTemp && seat.timestamp && (currentTime - seat.timestamp > TEMP_RESERVATION_TTL_SECONDS * 1000)) {
             updates[seatKey] = null;
-            hasExpiredTempSeats = true;
+            hasExpiredSeats = true;
             delete rawSeatsData[seatKey];
         }
     }
     
-    // 期限切れの席があればまとめてDBから削除
-    if (hasExpiredTempSeats) {
+    if (hasExpiredSeats) {
         set(seatsRef, updates).catch(error => {
             console.error("Failed to clear expired reservations:", error);
         });
@@ -561,20 +512,9 @@
     showMessage("❌ データベース接続エラーが発生しました。", true);
     document.getElementById("loading-overlay").innerHTML = '<p style="color:red; font-size: 18px;">❌ データベース接続エラー</p>';
   });
-  
-  // 2. 毎日PM8時 自動キャンセルチェック
-  onValue(lastClearRef, (snapshot) => {
-      const lastClearTimestamp = snapshot.val() || 0;
-      checkAndClearAllSeats(lastClearTimestamp)
-          .then(cleared => {
-              if (cleared) {
-                  // クリアされた場合、次のonValueでseatsRefがnullになり再描画される
-              }
-          })
-          .catch(e => console.error("Auto clear error check:", e));
-  });
 
 </script>
 
 </body>
 </html>
+
