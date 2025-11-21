@@ -1,7 +1,101 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  </head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約完了 - 王の食堂</title>
+  <style>
+    body {
+      font-family: "游ゴシック", sans-serif;
+      background-color: #f9f9f9;
+      padding: 1rem;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      color: #008000;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+    }
+
+    .details {
+      background-color: #e6ffe6;
+      border: 1px solid #c3e6cb;
+      padding: 1.2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 2rem auto;
+      max-width: 500px;
+      text-align: left;
+    }
+
+    .details h2 {
+      text-align: center;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+
+    .details p {
+      font-size: 1rem;
+      margin: 0.6rem 0;
+    }
+    
+    #message-box {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 4px;
+        color: white;
+        background-color: #2ecc71;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .back-button {
+      background-color: #008000;
+      color: white;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+
+    .back-button:hover {
+      background-color: #006400;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .details {
+        padding: 1rem;
+        margin: 1rem;
+      }
+
+      .details h2 {
+        font-size: 1.1rem;
+      }
+
+      .details p {
+        font-size: 0.95rem;
+      }
+
+      .back-button {
+        width: 100%;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
 <body>
 
   <h1>予約完了 🎊</h1>
@@ -20,13 +114,12 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    // updateを明示的にインポート
     import { getDatabase, ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
       authDomain: "lisasyokudo.firebaseapp.com",
-      databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebaserestapi.com", // 修正後のDatabase URLを使用
+      databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "lisasyokudo",
       storageBucket: "lisasyokudo.firebasestorage.app",
       messagingSenderId: "94391681633",
@@ -60,10 +153,8 @@
         
         const updates = {};
         finalizingSeats.forEach(seatKey => {
-            // isTempをfalse（確定予約）にし、timestampを更新
             updates[seatKey + '/isTemp'] = false;
             updates[seatKey + '/timestamp'] = serverTimestamp();
-            // 注意: isOccupiedは既にtrueなので、変更不要
         });
         
         update(seatsRef, updates)
