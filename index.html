@@ -176,15 +176,17 @@
   <div class="column" id="right-column"></div>
 </div>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-  import { set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js"; // setを明示的にimport
+  // 修正点1: すべてのimportを最上部に集約し、updateもインポート
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+  
+  // バージョン番号は12.6.0を使用（必要に応じてあなたが使っているバージョンに修正してください）
 
-  // Firebaseの設定はそのまま
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
     authDomain: "lisasyokudo.firebaseapp.com",
-    databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebaserestapi.com", // 修正後のDatabase URLを使用
+    // 修正点2: データベースURLは末尾の/を削除し、firebasedatabase.appを使用
+    databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "lisasyokudo",
     storageBucket: "lisasyokudo.firebasestorage.app",
     messagingSenderId: "94391681633",
@@ -207,7 +209,7 @@
 
   const currentUserId = getUserId();
   const MAX_RESERVATION_PER_USER = 6;
-  const TEMP_RESERVATION_TTL_SECONDS = 10 * 60; // 10分
+  const TEMP_RESERVATION_TTL_SECONDS = 10 * 60; 
   
   let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
   
@@ -339,7 +341,7 @@
     runTransaction(seatRef, (currentSeat) => {
       // 1. 自分の仮予約席をクリックした場合（解除/キャンセル）
       if (currentSeat && currentSeat.reservedByUserId === currentUserId && currentSeat.isTemp) {
-        return null; // Firebaseからこのノードを削除
+        return null; // Firebaseからこのノードを削除（キャンセル処理）
       } 
       
       // 2. 確定予約済みの席をクリックした場合（自分の席か他人の席かに関わらず）
@@ -378,15 +380,16 @@
 
     }).then((result) => {
         if (result.committed) {
+            // トランザクションが成功し、新しい値がnullの場合（キャンセル時）
             if (result.snapshot.val() === null) {
                 showMessage("✅ 仮予約をキャンセルしました。");
+            // トランザクションが成功し、新しい値がisTemp=trueの場合（新規仮予約時）
             } else if (result.snapshot.val().isTemp === true) {
                 showMessage("🎉 席を仮予約しました (10分間有効)。");
             }
         }
     }).catch(error => {
       console.error("Transaction failed: ", error);
-      // 競合エラーやネットワークエラーの可能性がある
       showMessage("❌ 予約処理中にエラーが発生しました。席マップを確認してください。", true);
     });
   }
@@ -439,7 +442,6 @@
     }
     
     // クリックイベントの設定
-    // 確定予約済みの席（isFinal）以外はクリック可能
     if (!isFinal) {
         seat.onclick = () => {
           toggleSeatStatus(tableNum, seatIndex); 
@@ -459,7 +461,6 @@
     const isSpecialTable = (tableNum === totalTables - 1 && seatCount === 3);
     const tableLabel = `机 ${tableNum + 1} (${seatCount}席)`;
 
-    // T32（最後のテーブル）が3席の場合のレイアウト
     if (isSpecialTable) {
       const seatsTop = document.createElement("div");
       seatsTop.className = "seat-row";
@@ -474,7 +475,6 @@
       return block;
     }
 
-    // 通常の6席テーブルのレイアウト
     const seatsTop = document.createElement("div");
     seatsTop.className = "seat-row";
     const seatsBottom = document.createElement("div");
@@ -505,7 +505,6 @@
 
     let index = 0;
 
-    // テーブルの配置ロジック
     for (let i = 0; i < tableCounts[0]; i++) {
       left.appendChild(createTableBlock(index++));
     }
@@ -523,6 +522,7 @@
    * Firebase Realtime Databaseの変更をリッスンし、UIを更新する
    */
   onValue(seatsRef, (snapshot) => {
+    // 修正点3: データベース接続/データ取得成功時にローディングを非表示にする
     document.getElementById("loading-overlay").style.display = 'none';
 
     let rawSeatsData = snapshot.val() || {};
@@ -544,27 +544,10 @@
     
     // 期限切れの席を一括でデータベースから削除
     if (hasExpiredSeats) {
-        // `set(seatsRef, updates)` ではなく `update(seatsRef, updates)` の方が安全ですが、
-        // 期限切れの席のみを対象とするため、ここでは `updates` を使用します。
-        // ただし、Firebase SDKの `set` はトップレベルノードの書き換えを意味するため、
-        // 適切には `update` を使うべきですが、`set` のインポートがないため、元のコードの意図を尊重しつつ、
-        // 期限切れ処理の書き込みを修正するため `set` から `update` (必要に応じて) に修正したいですが、
-        // 既存のコードは `updates` を使い、`set(seatsRef, updates)` がデータベース全体を上書きしてしまう可能性があるため、
-        // ここは一括削除のために `update` を使用するのが適切です。
-        
-        // setのインポートはあるが、元のコードが誤っているため修正
-        // `updates` オブジェクトがFirebaseのパスと値のマップとして機能するため、ここでは `set` ではなく
-        // `update` (または `ref(db, 'seats/' + seatKey)` の個別の `remove()`) が適切です。
-        // 簡単のため、期限切れの席のみを対象にした `update` に修正します。
-        
-        // update関数をインポート
-        import { update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-        
+        // update関数を使用して、期限切れの席を一括で削除
         update(seatsRef, updates).catch(error => {
             console.error("Failed to clear expired reservations:", error);
         });
-        
-        // NOTE: updateのインポートを追加する必要があるが、`set`のインポートを流用してここでは `set` を使用しないようにします。
     }
 
     seatsData = rawSeatsData;
@@ -579,3 +562,4 @@
 
 </body>
 </html>
+
