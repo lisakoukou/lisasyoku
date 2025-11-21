@@ -8,74 +8,70 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      padding: 5px;
-      text-align: center; /* 👈 全体の文字を中央揃え */
+      padding: 10px; /* パディングを少し減らす */
+      text-align: center;
       background-color: #f9f7f1;
       min-height: 100vh;
-      display: flex; /* 👈 body自身もflexコンテナにして */
-      flex-direction: column;
-      align-items: center; /* 👈 コンテンツを水平中央に配置 */
     }
     /* 席のレイアウト全体を保持するための設定 */
     .columns {
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: nowrap; /* 縦並びではなく横並びを維持 */
       justify-content: center;
-      gap: 8px;
-      padding-bottom: 30px;
-      min-width: 650px;
+      gap: 15px; /* ギャップを調整 */
+      padding-bottom: 50px;
+      min-width: 700px; /* PCと同じ横幅を維持するための最低幅 */
       margin: 0 auto;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 0 10px; /* 👈 左右に少しパディングを追加し、端に張り付くのを防ぐ */
+      overflow-x: auto; /* 画面からはみ出したらスクロール可能にする */
+      -webkit-overflow-scrolling: touch; /* iOSでのスムーズなスクロール */
     }
     .column {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      min-width: 150px;
+      gap: 15px; /* ギャップを調整 */
+      min-width: 200px; /* 各カラムの最低幅 */
     }
     .table-block {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
-      padding: 5px;
+      gap: 8px;
+      padding: 10px;
       border: 1px solid #ddd;
-      border-radius: 8px;
+      border-radius: 12px;
       background-color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      min-width: 120px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      min-width: 150px; /* テーブルブロックの最小幅 */
     }
     .seat-row {
       display: flex;
-      gap: 4px;
+      gap: 6px; /* 席間のスペースを減らす */
       justify-content: center;
     }
     .seat {
-      width: 25px;
-      height: 25px;
+      width: 30px; /* 席のサイズを少し小さく */
+      height: 30px;
       border-radius: 50%;
       background-color: #000000;
       color: #ffffff;
       font-weight: bold;
-      font-size: 10px;
-      line-height: 25px;
+      font-size: 12px; /* フォントサイズを小さく */
+      line-height: 30px;
       text-align: center;
       cursor: pointer;
       user-select: none;
       transition: background-color 0.3s, transform 0.1s, box-shadow 0.1s;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       position: relative;
     }
     .seat:hover:not(.occupied):not(.temp-reserved) {
         background-color: #333;
-        transform: scale(1.08);
+        transform: scale(1.05);
     }
     .seat.occupied {
       background-color: #90ee90;
       color: #000000;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     .seat.mine-temp {
         background-color: #ff9800;
@@ -93,40 +89,35 @@
     }
     
     .table {
-      width: 80px;
-      height: 30px;
+      width: 100px; /* テーブルの幅を小さく */
+      height: 40px;
       background-color: #c4c4c4;
-      border: 1px solid #999;
-      border-radius: 6px;
-      line-height: 30px;
+      border: 2px solid #999;
+      border-radius: 8px;
+      line-height: 40px;
       font-weight: bold;
       color: #333;
       user-select: none;
-      margin: 3px 0;
-      font-size: 12px;
+      margin: 5px 0;
+      font-size: 14px;
     }
-    
-    /* ツールチップの表示位置と視認性を改善 */
     .tooltip {
         visibility: hidden;
         background-color: #333;
         color: #fff;
         text-align: center;
-        border-radius: 4px;
-        padding: 4px 8px;
+        border-radius: 6px;
+        padding: 5px 10px;
         position: absolute;
-        z-index: 100; /* 👈 z-indexを高くし、他の要素に隠されないようにする */
-        bottom: 110%; 
+        z-index: 10; /* z-indexを上げて手前に表示 */
+        bottom: 125%;
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
         opacity: 0;
         transition: opacity 0.3s;
-        font-size: 9px; 
-        line-height: 1.1;
-        /* 画面外にはみ出さないための調整 (モバイル対応) */
-        max-width: 150px; 
-        box-sizing: border-box;
+        font-size: 10px; /* ツールチップのフォントサイズを小さく */
+        line-height: 1.2;
     }
     .seat.occupied:hover .tooltip, .seat.temp-reserved:hover .tooltip {
         visibility: visible;
@@ -137,31 +128,18 @@
         position: absolute;
         top: 100%;
         left: 50%;
-        margin-left: -3px;
-        border-width: 4px;
+        margin-left: -5px;
+        border-width: 5px;
         border-style: solid;
         border-color: #333 transparent transparent transparent;
     }
-    
+    /* 768px以下の画面では、横スクロールを強制するために、メディアクエリを削除または調整 */
     @media (max-width: 768px) {
-        /* UI要素を中央に保ちつつ、横スクロールを可能にする */
         .columns { 
-            gap: 5px; 
-            min-width: 600px;
+            gap: 10px; 
+            min-width: 800px; /* スマホでも横スクロールで全体が見えるように、意図的に最小幅を広げる */
         }
-        /* 主要なUI要素のフォントサイズ調整 */
-        .text-3xl { font-size: 1.5rem; }
-        .link-button { padding: 0.5rem 1rem; font-size: 0.9rem; }
-        #total-seats-status { font-size: 0.9rem; }
-        #reservation-action button { padding: 0.6rem 1.5rem; font-size: 0.9rem; }
     }
-    
-    /* ヘッダー要素も中央揃えを維持するためにTailwindのmx-autoクラスを利用 */
-    .w-full.max-w-xl.mx-auto, .w-full.max-w-2xl.mx-auto {
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }
-
   </style>
 </head>
 
@@ -431,7 +409,6 @@
             reservedByText = 'あなた (確定済)';
         }
         
-        // ツールチップの内容
         tooltip.innerHTML = `${status}: ${reservedByText}<br>時間: ${time}`;
         seat.appendChild(tooltip);
 
@@ -601,4 +578,3 @@
 
 </body>
 </html>
-
