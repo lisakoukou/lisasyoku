@@ -142,7 +142,6 @@
     </svg>
     <p class="mt-4 text-lg text-orange-500">Firebaseに接続中...</p>
 </div>
-
 <div id="message-box" class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-all duration-500 transform translate-x-full opacity-0" style="min-width: 250px;"></div>
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6">食堂予約（仮予約・確定版）</h1>
@@ -153,6 +152,12 @@
 
 <div id="user-info" class="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto">
     <p>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline">予約情報入力ページ</a>で名前などを入力してください。</p>
+</div>
+
+<div id="admin-area" class="mb-4 w-full max-w-2xl mx-auto hidden">
+    <button id="reset-seats-button" class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">
+        🚨 管理者: 全予約データをリセット 🚨
+    </button>
 </div>
 
 <div id="reservation-action" class="bg-orange-50 border-4 border-orange-400 p-4 rounded-lg shadow-lg mb-6 w-full max-w-2xl mx-auto hidden">
@@ -176,16 +181,13 @@
   <div class="column" id="right-column"></div>
 </div>
 <script type="module">
-  // 修正点1: すべてのimportを最上部に集約し、updateもインポート
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  // 修正点: remove, set をインポート
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, update, remove, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
   
-  // バージョン番号は12.6.0を使用（必要に応じてあなたが使っているバージョンに修正してください）
-
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
     authDomain: "lisasyokudo.firebaseapp.com",
-    // 修正点2: データベースURLは末尾の/を削除し、firebasedatabase.appを使用
     databaseURL: "https://lisasyokudo-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "lisasyokudo",
     storageBucket: "lisasyokudo.firebasestorage.app",
@@ -198,20 +200,15 @@
   const db = getDatabase(app);
   const seatsRef = ref(db, 'seats'); 
   
-  const getUserId = () => {
-    let userId = localStorage.getItem('currentUserId');
-    if (!userId) {
-      userId = crypto.randomUUID();
-      localStorage.setItem('currentUserId', userId);
-    }
-    return userId;
-  };
-
-  const currentUserId = getUserId();
+  // 修正点1: ユーザーIDの代わりにメールアドレスを使用
+  let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
+  const currentUserEmail = currentUserDetails ? currentUserDetails.email : null; // ユーザー識別子
+  
+  // 追加1: 管理者メールアドレスの定義
+  const ADMIN_EMAIL = '0016zst24115a7e8@gl.pen-kanagawa.ed.jp';
+  
   const MAX_RESERVATION_PER_USER = 6;
   const TEMP_RESERVATION_TTL_SECONDS = 10 * 60; 
-  
-  let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
   
   let seatsData = {};
   
@@ -232,22 +229,43 @@
 
   function updateUserInfoDisplay() {
     const userInfoDiv = document.getElementById('user-info');
-    if (currentUserDetails && currentUserDetails.name) {
+    const isAdmin = currentUserEmail === ADMIN_EMAIL; // 追加2: 管理者判定
+    
+    if (currentUserDetails && currentUserDetails.name && currentUserEmail) {
         userInfoDiv.className = "mb-4 p-3 bg-blue-100 border border-blue-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto";
         userInfoDiv.innerHTML = `
             <p><strong class="text-blue-600">現在の予約者情報:</strong></p>
             <p><strong>名前:</strong> ${currentUserDetails.name}</p>
-            <p><strong>メール:</strong> ${currentUserDetails.email}</p>
+            <p><strong>メール:</strong> ${currentUserEmail} ${isAdmin ? '<strong class="text-red-500">(管理者)</strong>' : ''}</p>
             <p><strong>時間:</strong> ${currentUserDetails.time}</p>
             <p class="text-xs text-gray-500">（この情報で予約されます。変更は「予約情報入力/変更」から）</p>
         `;
+        
+        // 追加3: 管理者ボタンの表示切り替え
+        document.getElementById('admin-area').style.display = isAdmin ? 'block' : 'none';
+        
     } else {
         userInfoDiv.className = "mb-4 p-3 bg-red-100 border border-red-400 rounded-lg text-sm text-red-700 w-full max-w-xl mx-auto";
         userInfoDiv.innerHTML = `<p class="font-bold">🚨 予約者情報が見つかりません。</p><p>席を予約する前に、<a href="yoyaku.html" class="text-red-600 underline">予約情報入力ページ</a>で名前、メール、時間を入力してください。</p>`;
+        document.getElementById('admin-area').style.display = 'none'; // 管理者ボタンを非表示
     }
   }
   updateUserInfoDisplay();
   
+  // 追加4: 管理者リセットボタンのイベントリスナー
+  document.getElementById('reset-seats-button').onclick = () => {
+      if (confirm("🚨 警告: すべての予約データ（確定・仮予約）を完全に削除します。よろしいですか？")) {
+          // set(seatsRef, null) の代わりに remove(seatsRef) を使用してノード自体を削除
+          remove(seatsRef).then(() => {
+              showMessage("✅ 管理者により、全予約データがリセットされました。", false);
+          }).catch(error => {
+              console.error("Reset failed: ", error);
+              showMessage("❌ リセット処理中にエラーが発生しました。", true);
+          });
+      }
+  };
+
+
   const tableCounts = [7, 10, 12];
   const totalTables = tableCounts.reduce((a, b) => a + b, 0); 
   // テーブル32のみ3席、他は6席
@@ -262,8 +280,9 @@
    * ユーザーの仮予約と確定予約の合計数をカウントする (MAX_RESERVATION_PER_USER制限用)
    */
   function countCurrentUserTotalSeats() {
+    // 修正2: reservedByUserId の代わりに reservedByEmail を使用
     return Object.values(seatsData).filter(
-        seat => seat && seat.reservedByUserId === currentUserId
+        seat => seat && seat.reservedByEmail === currentUserEmail
     ).length;
   }
   
@@ -271,8 +290,9 @@
    * ユーザーの現在の仮予約席のキーリストを取得する
    */
   function getCurrentUsersTempSeatKeys() {
+      // 修正3: reservedByUserId の代わりに reservedByEmail を使用
       return Object.keys(seatsData).filter(
-          key => seatsData[key] && seatsData[key].reservedByUserId === currentUserId && seatsData[key].isTemp
+          key => seatsData[key] && seatsData[key].reservedByEmail === currentUserEmail && seatsData[key].isTemp
       );
   }
 
@@ -302,7 +322,8 @@
   }
 
   document.getElementById('confirm-reservation-button').onclick = () => {
-      if (!currentUserDetails || !currentUserDetails.name) {
+      // 修正4: currentUserEmail のチェックを追加
+      if (!currentUserDetails || !currentUserDetails.name || !currentUserEmail) {
           showMessage("🚨 エラー: 予約者情報がありません。入力ページで設定してください。", true);
           return;
       }
@@ -315,6 +336,7 @@
       localStorage.setItem('finalizingReservationSeats', JSON.stringify(currentUsersTempSeats));
       
       const peopleCount = currentUsersTempSeats.length;
+      // 修正5: yoyakukannryou.html へのパラメータに email を含める (元々含まれていたため変更なし)
       const url = `yoyakukannryou.html?name=${encodeURIComponent(currentUserDetails.name)}&email=${encodeURIComponent(currentUserDetails.email)}&time=${encodeURIComponent(currentUserDetails.time)}&people=${peopleCount}`;
       
       window.location.href = url;
@@ -330,7 +352,8 @@
    * 座席の状態を切り替えるトランザクション処理（仮予約/解除）
    */
   function toggleSeatStatus(tableNum, seatIndex) {
-    if (!currentUserDetails || !currentUserDetails.name) {
+    // 修正6: currentUserEmail のチェックを追加
+    if (!currentUserDetails || !currentUserDetails.name || !currentUserEmail) {
         showMessage("🚨 エラー: 予約する前に、予約情報入力ページで名前などを入力してください。", true);
         return;
     }
@@ -340,7 +363,8 @@
 
     runTransaction(seatRef, (currentSeat) => {
       // 1. 自分の仮予約席をクリックした場合（解除/キャンセル）
-      if (currentSeat && currentSeat.reservedByUserId === currentUserId && currentSeat.isTemp) {
+      // 修正7: reservedByUserId の代わりに reservedByEmail を使用
+      if (currentSeat && currentSeat.reservedByEmail === currentUserEmail && currentSeat.isTemp) {
         return null; // Firebaseからこのノードを削除（キャンセル処理）
       } 
       
@@ -368,9 +392,10 @@
         return {
           isOccupied: true,
           isTemp: true,
-          reservedByUserId: currentUserId,
+          // 修正8: reservedByUserId を reservedByEmail に変更
+          reservedByEmail: currentUserEmail, 
           reservedByName: currentUserDetails.name,
-          reservedByEmail: currentUserDetails.email,
+          reservedByEmail: currentUserDetails.email, // 意図せずreservedByUserIdをreservedByEmailに置き換えていたため修正
           reservationTime: currentUserDetails.time,
           timestamp: serverTimestamp()
         };
@@ -380,10 +405,8 @@
 
     }).then((result) => {
         if (result.committed) {
-            // トランザクションが成功し、新しい値がnullの場合（キャンセル時）
             if (result.snapshot.val() === null) {
                 showMessage("✅ 仮予約をキャンセルしました。");
-            // トランザクションが成功し、新しい値がisTemp=trueの場合（新規仮予約時）
             } else if (result.snapshot.val().isTemp === true) {
                 showMessage("🎉 席を仮予約しました (10分間有効)。");
             }
@@ -401,7 +424,8 @@
     const isOccupied = seatInfo && seatInfo.isOccupied;
     const isTemp = isOccupied && seatInfo.isTemp;
     const isFinal = isOccupied && !seatInfo.isTemp;
-    const isMine = isOccupied && seatInfo.reservedByUserId === currentUserId;
+    // 修正9: reservedByUserId の代わりに reservedByEmail を使用
+    const isMine = isOccupied && seatInfo.reservedByEmail === currentUserEmail;
     const isMineTemp = isMine && isTemp;
     const isMineFinal = isMine && isFinal;
 
@@ -522,7 +546,6 @@
    * Firebase Realtime Databaseの変更をリッスンし、UIを更新する
    */
   onValue(seatsRef, (snapshot) => {
-    // 修正点3: データベース接続/データ取得成功時にローディングを非表示にする
     document.getElementById("loading-overlay").style.display = 'none';
 
     let rawSeatsData = snapshot.val() || {};
@@ -544,7 +567,6 @@
     
     // 期限切れの席を一括でデータベースから削除
     if (hasExpiredSeats) {
-        // update関数を使用して、期限切れの席を一括で削除
         update(seatsRef, updates).catch(error => {
             console.error("Failed to clear expired reservations:", error);
         });
