@@ -120,7 +120,7 @@
     <label for="name">名前：</label>
     <input type="text" id="name" name="name" required>
 
-    <label for="email">メール（学校のgmail）：</label>
+    <label for="email">メール（連絡先）：</label>
     <input type="email" id="email" name="email" required>
 
     <label for="time">予約したい時間：</label>
@@ -136,19 +136,12 @@
   </form>
   
   <script>
-    const getUserId = () => {
-        let userId = localStorage.getItem('currentUserId');
-        if (!userId) {
-            userId = crypto.randomUUID();
-            localStorage.setItem('currentUserId', userId);
-        }
-        return userId;
-    };
-    
+    // 修正1: getUserId 関数を削除
+    // 修正2: localStorage.getItem('currentUserId') の行を削除
+
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('reservation-form');
         const messageBox = document.getElementById('message-box');
-        getUserId();
         
         const existingDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
         if (existingDetails) {
@@ -171,17 +164,19 @@
                 return;
             }
             
-            const allowedDomain = '@gmail.com'; 
-            if (!email.toLowerCase().includes(allowedDomain) || email.indexOf('@') !== email.lastIndexOf('@')) {
+            // 修正3: メールアドレスのドメイン制限を解除
+            // 簡素なメール形式のチェックのみを行う
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
                 messageBox.style.backgroundColor = '#e74c3c';
-                messageBox.textContent = `🚨 有効なメールアドレスを入力してください。（例: user${allowedDomain}）`;
+                messageBox.textContent = `🚨 有効なメールアドレスを入力してください。`;
                 messageBox.style.display = 'block';
                 return;
             }
             
             const userDetails = {
                 name: name,
-                email: email,
+                email: email, // これを reservedByEmail としてユーザー識別子に使用
                 time: time
             };
             
