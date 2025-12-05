@@ -153,8 +153,10 @@
         
         const updates = {};
         finalizingSeats.forEach(seatKey => {
+            // 修正1: isTemp を false に設定
             updates[seatKey + '/isTemp'] = false;
-            updates[seatKey + '/timestamp'] = serverTimestamp();
+            // 修正2: timestamp を更新（最終確定時刻として）
+            updates[seatKey + '/timestamp'] = serverTimestamp(); 
         });
         
         update(seatsRef, updates)
