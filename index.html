@@ -2,14 +2,14 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=1200" /> <title>食堂予約（リアルタイム・トランザクション版）</title>
+  <meta name="viewport" content="width=1200" /> <title>王の食堂 予約システム</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
       font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
       padding: 20px;
       text-align: center;
-      background-color: #f4f1ea; /* 少し温かみのある背景色 */
+      background-color: #f4f1ea;
       min-height: 100vh;
       min-width: 1000px;
       color: #4a4a4a;
@@ -20,7 +20,7 @@
       flex-wrap: nowrap;
       justify-content: center;
       gap: 30px;
-      padding-bottom: 80px; /* ツールチップ用に下部の余白を増やす */
+      padding-bottom: 100px; /* ツールチップ表示用の余白 */
       overflow-x: auto;
     }
     .column {
@@ -35,10 +35,9 @@
       align-items: center;
       gap: 12px;
       padding: 20px 15px;
-      border: none;
       border-radius: 16px;
       background-color: #ffffff;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* 影を柔らかく */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     }
     .seat-row {
       display: flex;
@@ -49,7 +48,7 @@
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      background-color: #37474f; /* 未選択を落ち着いた色に */
+      background-color: #37474f;
       color: #ffffff;
       font-weight: bold;
       font-size: 14px;
@@ -63,59 +62,48 @@
     }
     .seat:hover:not(.occupied):not(.temp-reserved) {
         background-color: #546e7a;
-        transform: translateY(-2px); /* ホバー時に少し浮く */
+        transform: translateY(-2px);
     }
-    /* 確定済み */
-    .seat.occupied {
-      background-color: #66bb6a; /* 明るい緑 */
-      color: white;
-      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
-    }
-    /* 自分の仮予約 */
+    .seat.occupied { background-color: #66bb6a; color: white; }
     .seat.mine-temp {
-        background-color: #ffa726; /* オレンジ */
+        background-color: #ffa726;
         color: white;
         border: 2px solid #e65100;
         box-shadow: 0 0 10px rgba(255, 167, 38, 0.5);
     }
-    /* 他人の仮予約 */
     .seat.temp-reserved {
-        background-color: #ffcc80; /* 薄いオレンジ */
+        background-color: #ffcc80;
         color: #5d4037;
         cursor: not-allowed;
         opacity: 0.8;
     }
-    /* 自分の確定 */
     .seat.mine-final {
-        background-color: #29b6f6; /* 水色 */
+        background-color: #29b6f6;
         color: white;
         box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
     }
-    
     .table {
       width: 130px;
       height: 40px;
-      background-color: #d7ccc8; /* 机っぽい色 */
+      background-color: #d7ccc8;
       border-radius: 6px;
       line-height: 40px;
       font-weight: bold;
       color: #5d4037;
       user-select: none;
       margin-top: 5px;
-      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
     }
-
-    /* --- ツールチップの改善 --- */
+    /* ツールチップの改善：席の下側に大きく表示 */
     .tooltip {
         visibility: hidden;
-        background-color: rgba(33, 33, 33, 0.95); /* 少し透過させる */
+        background-color: rgba(33, 33, 33, 0.95);
         color: #fff;
         text-align: center;
         border-radius: 8px;
         padding: 8px 12px;
         position: absolute;
-        z-index: 10;
-        top: 120%; /* 席の下側に表示 */
+        z-index: 50;
+        top: 125%; 
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
@@ -123,19 +111,18 @@
         transition: opacity 0.3s, top 0.3s;
         font-size: 13px;
         line-height: 1.4;
-        pointer-events: none; /* ツールチップが邪魔にならないように */
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        pointer-events: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
     .seat:hover .tooltip {
         visibility: visible;
         opacity: 1;
-        top: 115%; /* ホバー時に少し上に移動するアニメーション */
+        top: 115%;
     }
-    /* ツールチップの矢印（上向き） */
     .tooltip::after {
         content: "";
         position: absolute;
-        bottom: 100%; /* ツールチップの上端 */
+        bottom: 100%;
         left: 50%;
         margin-left: -6px;
         border-width: 6px;
@@ -144,61 +131,44 @@
     }
   </style>
 </head>
-
 <body class="bg-gray-50 flex flex-col items-center p-4">
 
-<div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-90 flex justify-center items-center flex-col z-50 transition-opacity duration-300">
+<div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-90 flex justify-center items-center flex-col z-50">
     <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500"></div>
     <p class="mt-4 text-lg text-orange-600 font-semibold">食堂に接続中...</p>
 </div>
 
-<div id="message-box" class="fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl text-white transition-all duration-500 transform translate-x-full opacity-0 font-bold" style="min-width: 300px; backdrop-filter: blur(5px);"></div>
+<div id="message-box" class="fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl text-white transition-all duration-500 transform translate-x-full opacity-0 font-bold" style="min-width: 300px;"></div>
 
 <h1 class="text-4xl font-extrabold text-gray-800 mb-8 tracking-tight">🍛 食堂座席予約</h1>
 
-<a href="yoyaku.html" class="group relative inline-flex items-center justify-start overflow-hidden rounded-full px-8 py-3 bg-orange-500 font-bold text-white transition-all duration-300 ease-out hover:bg-orange-600 shadow-md hover:shadow-lg mb-6">
-  <span class="absolute right-0 translate-x-full transition-transform duration-300 ease-out group-hover:-translate-x-4">
-    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-  </span>
+<a href="yoyaku.html" class="group relative inline-flex items-center justify-start overflow-hidden rounded-full px-8 py-3 bg-orange-500 font-bold text-white transition-all duration-300 ease-out hover:bg-orange-600 shadow-md mb-6">
   <span class="transition-transform duration-300 ease-out group-hover:-translate-x-1">予約者情報を入力・変更する (必須)</span>
 </a>
 
 <div id="user-info" class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left">
-    <p class="flex items-center"><svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline font-bold hover:text-blue-800">予約情報入力ページ</a>で情報を入力してください。</p>
+    <p>予約情報がありません。<a href="yoyaku.html" class="text-blue-600 underline font-bold">こちら</a>で入力してください。</p>
 </div>
 
 <div id="admin-area" class="mb-6 w-full max-w-2xl mx-auto hidden text-right">
-    <button id="reset-seats-button" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 flex items-center ml-auto">
-        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-        管理者: 全席リセット (Firebase)
+    <button id="reset-seats-button" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300">
+        🚨 管理者: 全席リセット
     </button>
 </div>
 
-<div id="reservation-action" class="bg-orange-50 border-2 border-orange-300 p-6 rounded-2xl shadow-xl mb-8 w-full max-w-3xl mx-auto hidden relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+<div id="reservation-action" class="bg-orange-50 border-2 border-orange-300 p-6 rounded-2xl shadow-xl mb-8 w-full max-w-3xl mx-auto hidden">
     <div class="flex flex-col md:flex-row items-center justify-between">
-        <div class="mb-4 md:mb-0 text-left">
-            <p class="text-xl font-bold text-orange-800 flex items-center">
-                <svg class="h-6 w-6 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                仮予約中: <span id="temp-reserved-count" class="font-extrabold text-3xl text-orange-600 mx-2">0</span> 席
-            </p>
-            <p class="text-sm text-orange-700 mt-1 ml-8">※ 仮予約は10分間維持されます。</p>
-        </div>
-        <button id="confirm-reservation-button" class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center">
+        <p class="text-xl font-bold text-orange-800">仮予約中: <span id="temp-reserved-count" class="text-3xl text-orange-600 mx-2">0</span> 席</p>
+        <button id="confirm-reservation-button" class="bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition-all">
             予約を確定する
-            <svg class="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
         </button>
     </div>
 </div>
 
 <div class="bg-white p-4 rounded-xl shadow-md mb-6 inline-flex items-center space-x-6">
-    <p class="text-lg font-medium text-gray-700">
-        個人予約数: <span id="reserved-count" class="font-bold text-orange-600 text-2xl">0</span> / <span id="max-reservation" class="font-bold text-gray-500">6</span> 席
-    </p>
+    <p class="text-lg font-medium">個人予約数: <span id="reserved-count" class="font-bold text-orange-600 text-2xl">0</span> / 6 席</p>
     <div class="h-8 w-px bg-gray-300"></div>
-    <p class="text-lg font-medium text-gray-700">
-        総確定予約: <span id="total-occupied-count" class="font-bold text-green-600 text-2xl">0</span> / <span id="total-capacity-count" class="font-bold text-gray-500">171</span> 席
-    </p>
+    <p class="text-lg font-medium">総確定予約: <span id="total-occupied-count" class="font-bold text-green-600 text-2xl">0</span> / 171 席</p>
 </div>
 
 <div class="columns">
@@ -208,7 +178,7 @@
 </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, update, remove, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
   
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
@@ -229,22 +199,15 @@
   const currentUserEmail = currentUserDetails ? currentUserDetails.email.trim().toLowerCase() : null; 
   const ADMIN_EMAIL = '0116zst24115a7e8@gl.pen-kanagawa.ed.jp'.toLowerCase();
   
-  const MAX_RESERVATION_PER_USER = 6;
-  const TEMP_RESERVATION_TTL_SECONDS = 10 * 60; 
   let seatsData = {};
-  
-  document.getElementById("max-reservation").textContent = MAX_RESERVATION_PER_USER;
 
   function showMessage(text, isError = false) {
       const msgBox = document.getElementById('message-box');
-      msgBox.innerHTML = text; // HTMLタグを使えるように変更
-      msgBox.style.backgroundColor = isError ? 'rgba(220, 38, 38, 0.9)' : 'rgba(22, 163, 74, 0.9)'; // 少し透過
+      msgBox.innerHTML = text;
+      msgBox.style.backgroundColor = isError ? 'rgba(220, 38, 38, 0.9)' : 'rgba(22, 163, 74, 0.9)';
       msgBox.style.opacity = '1';
-      msgBox.style.transform = 'translateX(0) translateY(0)';
-      setTimeout(() => {
-          msgBox.style.opacity = '0';
-          msgBox.style.transform = 'translateX(100%) translateY(-20px)';
-      }, 4000);
+      msgBox.style.transform = 'translateX(0)';
+      setTimeout(() => { msgBox.style.opacity = '0'; msgBox.style.transform = 'translateX(100%)'; }, 4000);
   }
 
   function updateUserInfoDisplay() {
@@ -252,118 +215,58 @@
     const isAdmin = (currentUserEmail === ADMIN_EMAIL);
     if (currentUserDetails && currentUserEmail) {
         userInfoDiv.className = "mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left";
-        userInfoDiv.innerHTML = `
-            <div class="flex items-center mb-2">
-                <svg class="h-6 w-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span class="font-bold text-blue-600 text-lg">現在の予約者情報</span>
-            </div>
-            <div class="ml-8">
-                <p><strong>名前:</strong> ${currentUserDetails.name}</p>
-                <p><strong>メール:</strong> ${currentUserEmail} ${isAdmin ? '<span class="bg-red-100 text-red-600 py-1 px-2 rounded-full text-xs font-bold ml-2">管理者</span>' : ''}</p>
-            </div>
-        `;
+        userInfoDiv.innerHTML = `<div><p class="font-bold text-blue-600">現在の予約者</p><p>${currentUserDetails.name} (${currentUserEmail}) ${isAdmin ? '<span class="text-red-500">[管理者]</span>' : ''}</p></div>`;
         document.getElementById('admin-area').style.display = isAdmin ? 'block' : 'none';
-    } else {
-        document.getElementById('admin-area').style.display = 'none';
     }
   }
   updateUserInfoDisplay();
   
-  // Firebaseリセットボタン
   document.getElementById('reset-seats-button').onclick = async () => {
-      if (confirm("🚨 警告: Firebase上の【全予約データ】を完全に消去します。\n\n本当に実行しますか？")) {
+      if (confirm("🚨 Firebase上の全予約データをリセットします。よろしいですか？")) {
           try {
-              await set(seatsRef, null); 
-              seatsData = {};
-              renderTables();
-              showMessage("✅ データベースを空にしました。全ての席が解放されました。");
-          } catch (error) {
-              console.error("Firebase Reset Error:", error);
-              showMessage(`❌ リセット失敗:<br>${error.message}<br>(Firebaseのルールを確認してください)`, true);
-          }
+              await set(seatsRef, null);
+              showMessage("✅ データをリセットしました。");
+          } catch (e) { showMessage("❌ 失敗: " + e.message, true); }
       }
   };
 
   const tableCounts = [7, 10, 12];
-  const totalTables = tableCounts.reduce((a, b) => a + b, 0); 
-  const seatCounts = Array.from({ length: totalTables }, (_, i) => i === totalTables - 1 ? 3 : 6);
-  const TOTAL_CAPACITY = seatCounts.reduce((a, b) => a + b, 0); 
+  const totalTables = 29; 
+  // 机29(index 28)のみ3席、他は6席
+  const seatCounts = Array.from({ length: totalTables }, (_, i) => i === 28 ? 3 : 6);
 
-  function getSeatKey(tableNum, seatIndex) {
-    return `T${tableNum + 1}-S${seatIndex + 1}`; 
-  }
-
-  function countCurrentUserTotalSeats() {
-    return Object.values(seatsData).filter(s => s && s.reservedByEmail === currentUserEmail).length;
-  }
-  
-  function getCurrentUsersTempSeatKeys() {
-    return Object.keys(seatsData).filter(k => seatsData[k] && seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp);
-  }
-
-  function updateReservationActionArea() {
-      const currentUsersTempSeats = getCurrentUsersTempSeatKeys();
-      const count = currentUsersTempSeats.length;
-      document.getElementById("temp-reserved-count").textContent = count;
-      document.getElementById('reservation-action').style.display = count > 0 ? 'block' : 'none';
-      document.getElementById("reserved-count").textContent = countCurrentUserTotalSeats();
-  }
-
-  document.getElementById('confirm-reservation-button').onclick = () => {
-      const currentUsersTempSeats = getCurrentUsersTempSeatKeys();
-      if (!currentUserEmail || currentUsersTempSeats.length === 0) return;
-      localStorage.setItem('finalizingReservationSeats', JSON.stringify(currentUsersTempSeats));
-      window.location.href = `yoyakukannryou.html?name=${encodeURIComponent(currentUserDetails.name)}&email=${encodeURIComponent(currentUserEmail)}&people=${currentUsersTempSeats.length}`;
-  };
+  function getSeatKey(tableNum, seatIndex) { return `T${tableNum + 1}-S${seatIndex + 1}`; }
 
   function toggleSeatStatus(tableNum, seatIndex) {
-    if (!currentUserEmail) {
-        showMessage("🚨 予約情報入力ページで名前とメールを入力してください。", true);
-        return;
-    }
+    if (!currentUserEmail) { showMessage("🚨 予約情報を入力してください。", true); return; }
     const seatKey = getSeatKey(tableNum, seatIndex);
     const seatRef = ref(db, 'seats/' + seatKey);
-
-    runTransaction(seatRef, (currentSeat) => {
-      if (currentSeat && currentSeat.reservedByEmail === currentUserEmail && currentSeat.isTemp) return null;
-      if (currentSeat && currentSeat.isOccupied) return;
-      if (countCurrentUserTotalSeats() >= MAX_RESERVATION_PER_USER) return;
-
-      return {
-        isOccupied: true,
-        isTemp: true,
-        reservedByEmail: currentUserEmail, 
-        reservedByName: currentUserDetails.name,
-        timestamp: serverTimestamp()
-      };
+    runTransaction(seatRef, (current) => {
+      if (current && current.isOccupied && current.reservedByEmail !== currentUserEmail) return;
+      const mySeats = Object.values(seatsData).filter(s => s.reservedByEmail === currentUserEmail).length;
+      if (!current && mySeats >= 6) return;
+      return current ? null : { isOccupied: true, isTemp: true, reservedByEmail: currentUserEmail, reservedByName: currentUserDetails.name, timestamp: serverTimestamp() };
     });
   }
 
   function createSeat(seatIndex, tableNum) {
     const seatKey = getSeatKey(tableNum, seatIndex);
-    const seatInfo = seatsData[seatKey];
-    const isOccupied = seatInfo && seatInfo.isOccupied;
-    const isMine = isOccupied && seatInfo.reservedByEmail === currentUserEmail;
-    
-    const seat = document.createElement("div");
-    seat.className = "seat";
-    seat.innerText = seatIndex + 1;
-    
-    if (isMine) seat.classList.add("occupied", seatInfo.isTemp ? "mine-temp" : "mine-final");
-    else if (isOccupied) seat.classList.add(seatInfo.isTemp ? "temp-reserved" : "occupied");
-
+    const info = seatsData[seatKey];
+    const isOccupied = info && info.isOccupied;
+    const isMine = isOccupied && info.reservedByEmail === currentUserEmail;
+    const div = document.createElement("div");
+    div.className = "seat";
+    div.innerText = seatIndex + 1;
+    if (isMine) div.classList.add("occupied", info.isTemp ? "mine-temp" : "mine-final");
+    else if (isOccupied) div.classList.add(info.isTemp ? "temp-reserved" : "occupied");
     if (isOccupied) {
-        const tooltip = document.createElement("span");
-        tooltip.className = "tooltip";
-        // ツールチップの内容を少しリッチに
-        tooltip.innerHTML = `
-            <div class="font-bold border-b border-gray-600 pb-1 mb-1">${seatInfo.isTemp ? '⏳ 仮予約' : '✅ 確定予約'}</div>
-            <div>${seatInfo.reservedByName} 様</div>
-        `;
-        seat.appendChild(tooltip);
+        const tip = document.createElement("span");
+        tip.className = "tooltip";
+        tip.innerHTML = `<strong>${info.isTemp ? '⏳仮' : '✅確'}</strong><br>${info.reservedByName}`;
+        div.appendChild(tip);
     }
-    if (!isOccupied || (isMine && seatInfo.isTemp)) seat.onclick = () => toggleSeatStatus(tableNum, seatIndex);
-    return seat;
+    div.onclick = () => toggleSeatStatus(tableNum, seatIndex);
+    return div;
   }
 
   function createTableBlock(tableNum) {
@@ -372,44 +275,52 @@
     const seatCount = seatCounts[tableNum];
     const seatsTop = document.createElement("div");
     seatsTop.className = "seat-row";
-    const table = document.createElement("div");
-    table.className = "table";
-    table.innerText = `机 ${tableNum + 1}`;
-    
-    // 机29 (最後の机) はここに入り、3席が横並びになる
-    const half = Math.ceil(seatCount / 2);
-    for (let i = 0; i < half; i++) seatsTop.appendChild(createSeat(i, tableNum));
-    block.appendChild(seatsTop);
-    block.appendChild(table);
-    if (seatCount > half) {
-      const seatsBottom = document.createElement("div");
-      seatsBottom.className = "seat-row";
-      for (let i = half; i < seatCount; i++) seatsBottom.appendChild(createSeat(i, tableNum));
-      block.appendChild(seatsBottom);
+    const tableDiv = document.createElement("div");
+    tableDiv.className = "table";
+    tableDiv.innerText = `机 ${tableNum + 1}`;
+
+    if (tableNum === 28) { // 机29の特殊レイアウト
+        for (let i = 0; i < 3; i++) seatsTop.appendChild(createSeat(i, tableNum));
+        block.appendChild(seatsTop);
+        block.appendChild(tableDiv);
+    } else {
+        for (let i = 0; i < 3; i++) seatsTop.appendChild(createSeat(i, tableNum));
+        block.appendChild(seatsTop);
+        block.appendChild(tableDiv);
+        const seatsBottom = document.createElement("div");
+        seatsBottom.className = "seat-row";
+        for (let i = 3; i < 6; i++) seatsBottom.appendChild(createSeat(i, tableNum));
+        block.appendChild(seatsBottom);
     }
     return block;
   }
 
-  function renderTables() {
-    const columns = [document.getElementById("left-column"), document.getElementById("middle-column"), document.getElementById("right-column")];
-    columns.forEach(c => c.innerHTML = "");
+  function render() {
+    const cols = [document.getElementById("left-column"), document.getElementById("middle-column"), document.getElementById("right-column")];
+    cols.forEach(c => c.innerHTML = "");
     let tIdx = 0;
     tableCounts.forEach((count, cIdx) => {
-      for (let i = 0; i < count; i++) columns[cIdx].appendChild(createTableBlock(tIdx++));
+      for (let i = 0; i < count; i++) cols[cIdx].appendChild(createTableBlock(tIdx++));
     });
-    document.getElementById("total-occupied-count").textContent = Object.values(seatsData).filter(s => s && !s.isTemp).length;
-    document.getElementById("total-capacity-count").textContent = TOTAL_CAPACITY;
-    updateReservationActionArea();
+    const all = Object.values(seatsData);
+    document.getElementById("reserved-count").textContent = all.filter(s => s.reservedByEmail === currentUserEmail).length;
+    document.getElementById("total-occupied-count").textContent = all.filter(s => !s.isTemp).length;
+    const tempCount = Object.keys(seatsData).filter(k => seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp).length;
+    document.getElementById('reservation-action').style.display = tempCount > 0 ? 'block' : 'none';
+    document.getElementById("temp-reserved-count").textContent = tempCount;
   }
-  
-  onValue(seatsRef, (snapshot) => {
-    // データ取得完了時にローディングをフェードアウト
-    const overlay = document.getElementById("loading-overlay");
-    overlay.style.opacity = '0';
-    setTimeout(() => { overlay.style.display = 'none'; }, 300);
 
-    seatsData = snapshot.val() || {};
-    renderTables(); 
+  document.getElementById('confirm-reservation-button').onclick = () => {
+      const temps = Object.keys(seatsData).filter(k => seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp);
+      localStorage.setItem('finalizingReservationSeats', JSON.stringify(temps));
+      window.location.href = `yoyakukannryou.html?name=${encodeURIComponent(currentUserDetails.name)}&email=${encodeURIComponent(currentUserEmail)}&people=${temps.length}`;
+  };
+
+  onValue(seatsRef, (snap) => {
+    document.getElementById("loading-overlay").style.opacity = '0';
+    setTimeout(() => document.getElementById("loading-overlay").style.display = 'none', 300);
+    seatsData = snap.val() || {};
+    render();
   });
 </script>
 </body>
