@@ -3,196 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>王の食堂 予約フォーム</title>
+  <title>王の食堂 予約情報入力</title>
   <style>
     body {
       font-family: "游ゴシック", sans-serif;
       background: linear-gradient(135deg, #b35d00 0%, #803d00 100%);
-      padding: 1rem;
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      padding: 1rem; margin: 0; min-height: 100vh;
+      display: flex; justify-content: center; align-items: center;
     }
-
     form {
-      max-width: 500px;
-      width: 100%;
-      background: #ffcc99;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 0 15px rgba(179, 93, 0, 0.6);
-      color: #4a2b00;
-      z-index: 10;
+      max-width: 500px; width: 100%; background: #ffcc99;
+      padding: 1.5rem; border-radius: 8px; color: #4a2b00;
     }
-
-    h1 {
-      color: #fff3e0;
-      text-align: center;
-      font-size: 1.8rem;
-      margin-bottom: 1.5rem;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-      width: 100%;
-      position: absolute;
-      top: 1rem;
-      left: 0;
-    }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-size: 1rem;
-      color: #4a2b00;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.3rem;
-      font-size: 1rem;
-      box-sizing: border-box;
-      border: 1px solid #cc8a32;
-      border-radius: 4px;
-    }
-
-    input[type="submit"] {
-      background-color: #b35d00;
-      color: white;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 4px;
-      margin-top: 1.5rem;
-      cursor: pointer;
-      width: 100%;
-      font-size: 1rem;
-      transition: background-color 0.3s;
-    }
-
-    input[type="submit"]:hover {
-      background-color: #803d00;
-    }
-
-    #message-box {
-        margin-top: 1rem;
-        padding: 0.75rem;
-        border-radius: 4px;
-        color: white;
-        background-color: #2ecc71;
-        text-align: center;
-        display: none;
-    }
-    
-    .back-button {
-        display: block;
-        text-align: center;
-        margin-top: 1rem;
-        color: #b35d00;
-        text-decoration: underline;
-        font-weight: bold;
-    }
-
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.5rem;
-        position: static;
-        margin-bottom: 1rem;
-      }
-
-      body {
-        padding: 1rem 0.5rem;
-        align-items: flex-start;
-      }
-
-      input, select, textarea, input[type="submit"] {
-        font-size: 0.95rem;
-        padding: 0.5rem;
-      }
-    }
+    h1 { color: #fff3e0; text-align: center; margin-bottom: 1.5rem; }
+    label { display: block; margin-top: 1rem; }
+    input { width: 100%; padding: 0.6rem; margin-top: 0.3rem; border-radius: 4px; border: 1px solid #cc8a32; }
+    input[type="submit"] { background-color: #b35d00; color: white; margin-top: 1.5rem; cursor: pointer; border: none; }
+    .back-button { display: block; text-align: center; margin-top: 1rem; color: #b35d00; }
   </style>
 </head>
 <body>
-
-  <h1>王の食卓 予約フォーム</h1>
-
   <form id="reservation-form">
+    <h1>予約者情報入力</h1>
     <label for="name">名前：</label>
-    <input type="text" id="name" name="name" required>
-
-    <label for="email">メール（連絡先）：</label>
-    <input type="email" id="email" name="email" required>
-
-    <label for="time">予約したい時間：</label>
-    <input type="time" id="time" name="time" required>
-    
-    <div id="message-box"></div>
-
-    <input type="submit" value="予約情報を保存して席マップへ">
-    
-    <a href="index.html" class="back-button">
-        席マップに戻る
-    </a>
+    <input type="text" id="name" required>
+    <label for="email">メールアドレス：</label>
+    <input type="email" id="email" required>
+    <div id="message-box" style="display:none; margin-top:10px; padding:10px; border-radius:4px; color:white;"></div>
+    <input type="submit" value="保存して席選択へ">
+    <a href="index.html" class="back-button">戻る</a>
   </form>
-  
   <script>
-    // 修正1: getUserId 関数を削除
-    // 修正2: localStorage.getItem('currentUserId') の行を削除
-
     document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('reservation-form');
-        const messageBox = document.getElementById('message-box');
-        
-        const existingDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
-        if (existingDetails) {
-            document.getElementById('name').value = existingDetails.name || '';
-            document.getElementById('email').value = existingDetails.email || '';
-            document.getElementById('time').value = existingDetails.time || '';
-        }
-        
-        form.addEventListener('submit', (e) => {
+        const details = JSON.parse(localStorage.getItem('currentUserDetails') || '{}');
+        if(details.name) document.getElementById('name').value = details.name;
+        if(details.email) document.getElementById('email').value = details.email;
+
+        document.getElementById('reservation-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
-            const time = document.getElementById('time').value;
-            
-            if (!name || !email || !time) {
-                messageBox.style.backgroundColor = '#e74c3c';
-                messageBox.textContent = 'すべてのフィールドを入力してください。';
-                messageBox.style.display = 'block';
-                return;
-            }
-            
-            // 修正3: メールアドレスのドメイン制限を解除
-            // 簡素なメール形式のチェックのみを行う
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(email)) {
-                messageBox.style.backgroundColor = '#e74c3c';
-                messageBox.textContent = `🚨 有効なメールアドレスを入力してください。`;
-                messageBox.style.display = 'block';
-                return;
-            }
-            
-            const userDetails = {
-                name: name,
-                email: email, // これを reservedByEmail としてユーザー識別子に使用
-                time: time
-            };
-            
-            localStorage.setItem('currentUserDetails', JSON.stringify(userDetails));
-            
-            messageBox.style.backgroundColor = '#2ecc71';
-            messageBox.textContent = '予約者情報を保存しました。席マップに戻って席を選んでください。';
-            messageBox.style.display = 'block';
-            
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
+            localStorage.setItem('currentUserDetails', JSON.stringify({ name, email }));
+            window.location.href = 'index.html';
         });
     });
   </script>
-
 </body>
 </html>
 
