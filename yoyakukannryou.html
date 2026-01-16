@@ -2,21 +2,120 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>予約完了</title>
+  <title>予約完了 - 王の食堂</title>
   <style>
-    body { font-family: "游ゴシック", sans-serif; background-color: #f9f9f9; padding: 2rem; text-align: center; }
-    .details { background: #e6ffe6; padding: 1.5rem; border-radius: 8px; max-width: 500px; margin: 2rem auto; text-align: left; }
-    .back-button { background: #008000; color: white; padding: 0.8rem 2rem; border-radius: 4px; border: none; cursor: pointer; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f4f1ea;
+      background-image: radial-gradient(#e0d8c8 1px, transparent 1px);
+      background-size: 20px 20px;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #5d4037;
+    }
+    .card {
+      background: #ffffff;
+      padding: 3rem 2rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      color: #43a047; /* 成功を示す緑 */
+      font-size: 2rem;
+      margin: 0 0 0.5rem 0;
+      font-weight: 900;
+    }
+    .subtitle {
+        font-size: 1.1rem;
+        margin-bottom: 2.5rem;
+        color: #795548;
+    }
+    .success-icon {
+        font-size: 4rem;
+        color: #43a047;
+        margin-bottom: 1rem;
+    }
+
+    .details-box {
+      background-color: #f1f8e9; /* 薄い緑の背景 */
+      border: 2px solid #c5e1a5;
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: left;
+      margin-bottom: 2rem;
+    }
+    .detail-item {
+        margin-bottom: 0.8rem;
+        font-size: 1rem;
+        display: flex;
+    }
+    .detail-label {
+        font-weight: bold;
+        width: 80px;
+        color: #558b2f;
+    }
+    .detail-value {
+        flex: 1;
+        font-weight: 500;
+    }
+
+    .back-button {
+      background: linear-gradient(to right, #43a047, #66bb6a);
+      color: white;
+      padding: 1rem 2.5rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: bold;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+      text-decoration: none;
+      display: inline-block;
+    }
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    #message-box {
+        margin-bottom: 1.5rem; padding: 1rem; border-radius: 10px; color: white; font-weight: bold; display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>予約完了 🎊</h1>
-  <div class="details">
-    <p><strong>名前：</strong><span id="displayName"></span></p>
-    <p><strong>メール：</strong><span id="displayEmail"></span></p>
-    <p><strong>予約席：</strong><span id="displaySeats"></span></p>
+
+  <div class="card">
+      <div class="success-icon">🎉</div>
+      <h1>予約が完了しました！</h1>
+      <p class="subtitle">ご予約ありがとうございます。</p>
+
+      <div id="message-box"></div>
+
+      <div class="details-box">
+        <div class="detail-item">
+            <span class="detail-label">お名前</span>
+            <span class="detail-value" id="displayName"></span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">メール</span>
+            <span class="detail-value" id="displayEmail"></span>
+        </div>
+        <div class="detail-item" style="border-top: 2px dashed #c5e1a5; padding-top: 0.8rem; margin-top: 0.5rem;">
+            <span class="detail-label">予約席</span>
+            <span class="detail-value" id="displaySeats" style="color: #d84315; font-weight: bold; font-size: 1.1rem;">処理中...</span>
+        </div>
+      </div>
+
+      <a href="index.html" class="back-button">席マップに戻る</a>
   </div>
-  <button class="back-button" onclick="window.location.href='index.html'">席マップへ戻る</button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
@@ -36,21 +135,38 @@
     const db = getDatabase(app);
     const params = new URLSearchParams(window.location.search);
     
-    document.getElementById("displayName").textContent = params.get("name");
-    document.getElementById("displayEmail").textContent = params.get("email");
+    document.getElementById("displayName").textContent = params.get("name") || '不明';
+    document.getElementById("displayEmail").textContent = params.get("email") || '不明';
     
     const seats = JSON.parse(localStorage.getItem('finalizingReservationSeats') || '[]');
-    document.getElementById("displaySeats").textContent = seats.join(', ');
+    const displaySeatsElem = document.getElementById("displaySeats");
+    const messageBox = document.getElementById("message-box");
 
     if (seats.length > 0) {
+        displaySeatsElem.textContent = seats.join(', ');
+        
         const updates = {};
         seats.forEach(s => {
             updates[s + '/isTemp'] = false;
             updates[s + '/timestamp'] = serverTimestamp();
         });
-        update(ref(db, 'seats'), updates).then(() => {
-            localStorage.removeItem('finalizingReservationSeats');
-        });
+        
+        update(ref(db, 'seats'), updates)
+            .then(() => {
+                localStorage.removeItem('finalizingReservationSeats');
+                // 成功メッセージはあえて出さず、画面デザインで表現する
+            })
+            .catch(error => {
+                console.error("Finalize failed:", error);
+                messageBox.textContent = "❌ 予約の確定処理に失敗しました。管理者に問い合わせてください。";
+                messageBox.style.backgroundColor = "#ef5350";
+                messageBox.style.display = "block";
+            });
+    } else {
+        displaySeatsElem.textContent = 'なし (エラー)';
+        messageBox.textContent = "❌ 予約する席情報が見つかりませんでした。";
+        messageBox.style.backgroundColor = "#ef5350";
+        messageBox.style.display = "block";
     }
   </script>
 </body>
