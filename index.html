@@ -20,7 +20,7 @@
       flex-wrap: nowrap;
       justify-content: center;
       gap: 30px;
-      padding-bottom: 100px; /* ツールチップ表示用の余白 */
+      padding-bottom: 120px; /* ツールチップ用の余白 */
       overflow-x: auto;
     }
     .column {
@@ -54,29 +54,32 @@
       font-size: 14px;
       line-height: 38px;
       text-align: center;
-      cursor: pointer;
       user-select: none;
       transition: all 0.2s ease;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       position: relative;
     }
-    .seat:hover:not(.occupied):not(.temp-reserved) {
-        background-color: #546e7a;
+    /* ホバーアニメーション（操作可能な席のみ） */
+    .seat.clickable:hover {
         transform: translateY(-2px);
+        filter: brightness(1.1);
     }
+    /* 確定済み（緑/水色） */
     .seat.occupied { background-color: #66bb6a; color: white; }
+    /* 自分の仮予約（オレンジ） */
     .seat.mine-temp {
         background-color: #ffa726;
         color: white;
         border: 2px solid #e65100;
         box-shadow: 0 0 10px rgba(255, 167, 38, 0.5);
     }
+    /* 他人の仮予約（薄オレンジ） */
     .seat.temp-reserved {
         background-color: #ffcc80;
         color: #5d4037;
-        cursor: not-allowed;
         opacity: 0.8;
     }
+    /* 自分の確定（水色） */
     .seat.mine-final {
         background-color: #29b6f6;
         color: white;
@@ -93,7 +96,7 @@
       user-select: none;
       margin-top: 5px;
     }
-    /* ツールチップの改善：席の下側に大きく表示 */
+    /* ツールチップ設定：席の下側に表示 */
     .tooltip {
         visibility: hidden;
         background-color: rgba(33, 33, 33, 0.95);
@@ -147,12 +150,12 @@
 </a>
 
 <div id="user-info" class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left">
-    <p>予約情報がありません。<a href="yoyaku.html" class="text-blue-600 underline font-bold">こちら</a>で入力してください。</p>
+    <p>予約情報がありません。<a href="yoyaku.html" class="text-blue-600 underline font-bold">こちら</a>で情報を入力してください。</p>
 </div>
 
 <div id="admin-area" class="mb-6 w-full max-w-2xl mx-auto hidden text-right">
     <button id="reset-seats-button" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300">
-        🚨 管理者: 全席リセット
+        🚨 管理者: 全席リセット (Firebase)
     </button>
 </div>
 
@@ -215,37 +218,52 @@
     const isAdmin = (currentUserEmail === ADMIN_EMAIL);
     if (currentUserDetails && currentUserEmail) {
         userInfoDiv.className = "mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left";
-        userInfoDiv.innerHTML = `<div><p class="font-bold text-blue-600">現在の予約者</p><p>${currentUserDetails.name} (${currentUserEmail}) ${isAdmin ? '<span class="text-red-500">[管理者]</span>' : ''}</p></div>`;
+        userInfoDiv.innerHTML = `<div><p class="font-bold text-blue-600">現在の予約者情報</p><p>${currentUserDetails.name} (${currentUserEmail}) ${isAdmin ? '<span class="text-red-500 font-bold ml-2">[管理者]</span>' : ''}</p></div>`;
         document.getElementById('admin-area').style.display = isAdmin ? 'block' : 'none';
     }
   }
   updateUserInfoDisplay();
   
   document.getElementById('reset-seats-button').onclick = async () => {
-      if (confirm("🚨 Firebase上の全予約データをリセットします。よろしいですか？")) {
+      if (confirm("🚨 全予約データをリセットします。本当によろしいですか？")) {
           try {
               await set(seatsRef, null);
-              showMessage("✅ データをリセットしました。");
-          } catch (e) { showMessage("❌ 失敗: " + e.message, true); }
+              showMessage("✅ 全データをリセットしました。");
+          } catch (e) { showMessage("❌ リセット失敗: " + e.message, true); }
       }
   };
 
   const tableCounts = [7, 10, 12];
   const totalTables = 29; 
-  // 机29(index 28)のみ3席、他は6席
   const seatCounts = Array.from({ length: totalTables }, (_, i) => i === 28 ? 3 : 6);
 
   function getSeatKey(tableNum, seatIndex) { return `T${tableNum + 1}-S${seatIndex + 1}`; }
 
   function toggleSeatStatus(tableNum, seatIndex) {
     if (!currentUserEmail) { showMessage("🚨 予約情報を入力してください。", true); return; }
+    
     const seatKey = getSeatKey(tableNum, seatIndex);
     const seatRef = ref(db, 'seats/' + seatKey);
+
     runTransaction(seatRef, (current) => {
+      // 他人の席は触れない
       if (current && current.isOccupied && current.reservedByEmail !== currentUserEmail) return;
-      const mySeats = Object.values(seatsData).filter(s => s.reservedByEmail === currentUserEmail).length;
-      if (!current && mySeats >= 6) return;
-      return current ? null : { isOccupied: true, isTemp: true, reservedByEmail: currentUserEmail, reservedByName: currentUserDetails.name, timestamp: serverTimestamp() };
+
+      // 【修正】確定済みの自分の席は、タップしても何もしない（解除させない）
+      if (current && current.isOccupied && current.reservedByEmail === currentUserEmail && current.isTemp === false) {
+          return; 
+      }
+
+      // 自分の「仮予約」ならタップで解除可能
+      if (current && current.isOccupied && current.reservedByEmail === currentUserEmail && current.isTemp === true) {
+          return null; 
+      }
+
+      // 空席を予約する場合
+      const mySeatsCount = Object.values(seatsData).filter(s => s.reservedByEmail === currentUserEmail).length;
+      if (!current && mySeatsCount >= 6) return;
+      
+      return { isOccupied: true, isTemp: true, reservedByEmail: currentUserEmail, reservedByName: currentUserDetails.name, timestamp: serverTimestamp() };
     });
   }
 
@@ -254,18 +272,30 @@
     const info = seatsData[seatKey];
     const isOccupied = info && info.isOccupied;
     const isMine = isOccupied && info.reservedByEmail === currentUserEmail;
+    
     const div = document.createElement("div");
     div.className = "seat";
     div.innerText = seatIndex + 1;
+
     if (isMine) div.classList.add("occupied", info.isTemp ? "mine-temp" : "mine-final");
     else if (isOccupied) div.classList.add(info.isTemp ? "temp-reserved" : "occupied");
+
+    // 操作可能な席（空席 or 自分の仮予約）のみクリック可能にする
+    const canClick = !isOccupied || (isMine && info.isTemp === true);
+    if (canClick) {
+        div.onclick = () => toggleSeatStatus(tableNum, seatIndex);
+        div.classList.add("clickable");
+        div.style.cursor = "pointer";
+    } else {
+        div.style.cursor = "not-allowed";
+    }
+
     if (isOccupied) {
         const tip = document.createElement("span");
         tip.className = "tooltip";
-        tip.innerHTML = `<strong>${info.isTemp ? '⏳仮' : '✅確'}</strong><br>${info.reservedByName}`;
+        tip.innerHTML = `<strong>${info.isTemp ? '⏳仮予約' : '✅確定'}</strong><br>${info.reservedByName}`;
         div.appendChild(tip);
     }
-    div.onclick = () => toggleSeatStatus(tableNum, seatIndex);
     return div;
   }
 
@@ -279,11 +309,11 @@
     tableDiv.className = "table";
     tableDiv.innerText = `机 ${tableNum + 1}`;
 
-    if (tableNum === 28) { // 机29の特殊レイアウト
+    if (tableNum === 28) { // 机29の特殊レイアウト（上3、下なし）
         for (let i = 0; i < 3; i++) seatsTop.appendChild(createSeat(i, tableNum));
         block.appendChild(seatsTop);
         block.appendChild(tableDiv);
-    } else {
+    } else { // 通常（上3、下3）
         for (let i = 0; i < 3; i++) seatsTop.appendChild(createSeat(i, tableNum));
         block.appendChild(seatsTop);
         block.appendChild(tableDiv);
@@ -305,9 +335,9 @@
     const all = Object.values(seatsData);
     document.getElementById("reserved-count").textContent = all.filter(s => s.reservedByEmail === currentUserEmail).length;
     document.getElementById("total-occupied-count").textContent = all.filter(s => !s.isTemp).length;
-    const tempCount = Object.keys(seatsData).filter(k => seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp).length;
-    document.getElementById('reservation-action').style.display = tempCount > 0 ? 'block' : 'none';
-    document.getElementById("temp-reserved-count").textContent = tempCount;
+    const tempKeys = Object.keys(seatsData).filter(k => seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp);
+    document.getElementById('reservation-action').style.display = tempKeys.length > 0 ? 'block' : 'none';
+    document.getElementById("temp-reserved-count").textContent = tempKeys.length;
   }
 
   document.getElementById('confirm-reservation-button').onclick = () => {
