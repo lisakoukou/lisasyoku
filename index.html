@@ -6,20 +6,22 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
       padding: 20px;
       text-align: center;
-      background-color: #f9f7f1;
+      background-color: #f4f1ea; /* 少し温かみのある背景色 */
       min-height: 100vh;
-      min-width: 1000px; /* 横並びを維持するための最小幅 */
+      min-width: 1000px;
+      color: #4a4a4a;
     }
+    h1 { color: #5d4037; }
     .columns {
       display: flex;
-      flex-wrap: nowrap; /* 折り返し禁止 */
+      flex-wrap: nowrap;
       justify-content: center;
       gap: 30px;
-      padding-bottom: 50px;
-      overflow-x: auto; /* はみ出す場合はスクロール */
+      padding-bottom: 80px; /* ツールチップ用に下部の余白を増やす */
+      overflow-x: auto;
     }
     .column {
       display: flex;
@@ -31,146 +33,173 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
+      gap: 12px;
+      padding: 20px 15px;
+      border: none;
+      border-radius: 16px;
       background-color: #ffffff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* 影を柔らかく */
     }
     .seat-row {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       justify-content: center;
     }
     .seat {
-      width: 35px;
-      height: 35px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      background-color: #000000;
+      background-color: #37474f; /* 未選択を落ち着いた色に */
       color: #ffffff;
       font-weight: bold;
       font-size: 14px;
-      line-height: 35px;
+      line-height: 38px;
       text-align: center;
       cursor: pointer;
       user-select: none;
-      transition: background-color 0.3s, transform 0.1s, box-shadow 0.1s;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       position: relative;
     }
     .seat:hover:not(.occupied):not(.temp-reserved) {
-        background-color: #333;
-        transform: scale(1.05);
+        background-color: #546e7a;
+        transform: translateY(-2px); /* ホバー時に少し浮く */
     }
+    /* 確定済み */
     .seat.occupied {
-      background-color: #90ee90;
-      color: #000000;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: #66bb6a; /* 明るい緑 */
+      color: white;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
     }
+    /* 自分の仮予約 */
     .seat.mine-temp {
-        background-color: #ff9800;
+        background-color: #ffa726; /* オレンジ */
         color: white;
         border: 2px solid #e65100;
+        box-shadow: 0 0 10px rgba(255, 167, 38, 0.5);
     }
+    /* 他人の仮予約 */
     .seat.temp-reserved {
-        background-color: #ffcc80;
-        color: #6d4c41;
+        background-color: #ffcc80; /* 薄いオレンジ */
+        color: #5d4037;
         cursor: not-allowed;
+        opacity: 0.8;
     }
+    /* 自分の確定 */
     .seat.mine-final {
-        background-color: #5bc0eb;
+        background-color: #29b6f6; /* 水色 */
         color: white;
+        box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
     }
     
     .table {
-      width: 120px;
-      height: 45px;
-      background-color: #c4c4c4;
-      border: 2px solid #999;
-      border-radius: 8px;
-      line-height: 45px;
+      width: 130px;
+      height: 40px;
+      background-color: #d7ccc8; /* 机っぽい色 */
+      border-radius: 6px;
+      line-height: 40px;
       font-weight: bold;
-      color: #333;
+      color: #5d4037;
       user-select: none;
-      margin: 5px 0;
+      margin-top: 5px;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
     }
+
+    /* --- ツールチップの改善 --- */
     .tooltip {
         visibility: hidden;
-        background-color: #333;
+        background-color: rgba(33, 33, 33, 0.95); /* 少し透過させる */
         color: #fff;
         text-align: center;
-        border-radius: 6px;
-        padding: 5px 10px;
+        border-radius: 8px;
+        padding: 8px 12px;
         position: absolute;
-        z-index: 1;
-        bottom: 125%;
+        z-index: 10;
+        top: 120%; /* 席の下側に表示 */
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
         opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 12px;
-        line-height: 1.2;
+        transition: opacity 0.3s, top 0.3s;
+        font-size: 13px;
+        line-height: 1.4;
+        pointer-events: none; /* ツールチップが邪魔にならないように */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
-    .seat.occupied:hover .tooltip, .seat.temp-reserved:hover .tooltip {
+    .seat:hover .tooltip {
         visibility: visible;
         opacity: 1;
+        top: 115%; /* ホバー時に少し上に移動するアニメーション */
     }
+    /* ツールチップの矢印（上向き） */
     .tooltip::after {
         content: "";
         position: absolute;
-        top: 100%;
+        bottom: 100%; /* ツールチップの上端 */
         left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
+        margin-left: -6px;
+        border-width: 6px;
         border-style: solid;
-        border-color: #333 transparent transparent transparent;
+        border-color: transparent transparent rgba(33, 33, 33, 0.95) transparent;
     }
   </style>
 </head>
 
 <body class="bg-gray-50 flex flex-col items-center p-4">
 
-<div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-80 flex justify-center items-center flex-col z-50">
-    <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" style="background: none;">
-        <circle cx="50" cy="50" r="40" stroke="#ff9800" stroke-width="8" fill="none" stroke-linecap="round" 
-        style="stroke-dasharray: 251.2; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite, rotate 2s linear infinite;"></circle>
-    </svg>
-    <p class="mt-4 text-lg text-orange-500">Firebaseに接続中...</p>
+<div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-90 flex justify-center items-center flex-col z-50 transition-opacity duration-300">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500"></div>
+    <p class="mt-4 text-lg text-orange-600 font-semibold">食堂に接続中...</p>
 </div>
 
-<div id="message-box" class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-all duration-500 transform translate-x-full opacity-0" style="min-width: 250px;"></div>
+<div id="message-box" class="fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl text-white transition-all duration-500 transform translate-x-full opacity-0 font-bold" style="min-width: 300px; backdrop-filter: blur(5px);"></div>
 
-<h1 class="text-3xl font-bold text-gray-800 mb-6">食堂予約（席選択）</h1>
+<h1 class="text-4xl font-extrabold text-gray-800 mb-8 tracking-tight">🍛 食堂座席予約</h1>
 
-<a href="yoyaku.html" class="link-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 mb-4 inline-block">
-  予約情報入力/変更 (必須)
+<a href="yoyaku.html" class="group relative inline-flex items-center justify-start overflow-hidden rounded-full px-8 py-3 bg-orange-500 font-bold text-white transition-all duration-300 ease-out hover:bg-orange-600 shadow-md hover:shadow-lg mb-6">
+  <span class="absolute right-0 translate-x-full transition-transform duration-300 ease-out group-hover:-translate-x-4">
+    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+  </span>
+  <span class="transition-transform duration-300 ease-out group-hover:-translate-x-1">予約者情報を入力・変更する (必須)</span>
 </a>
 
-<div id="user-info" class="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto">
-    <p>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline">予約情報入力ページ</a>で情報を入力してください。</p>
+<div id="user-info" class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left">
+    <p class="flex items-center"><svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>現在の予約者情報がありません。<a href="yoyaku.html" class="text-blue-600 underline font-bold hover:text-blue-800">予約情報入力ページ</a>で情報を入力してください。</p>
 </div>
 
-<div id="admin-area" class="mb-4 w-full max-w-2xl mx-auto hidden">
-    <button id="reset-seats-button" class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">
-        🚨 管理者: 全席リセット (Firebase) 🚨
+<div id="admin-area" class="mb-6 w-full max-w-2xl mx-auto hidden text-right">
+    <button id="reset-seats-button" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 flex items-center ml-auto">
+        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        管理者: 全席リセット (Firebase)
     </button>
 </div>
 
-<div id="reservation-action" class="bg-orange-50 border-4 border-orange-400 p-4 rounded-lg shadow-lg mb-6 w-full max-w-2xl mx-auto hidden">
-    <p class="text-lg font-bold text-orange-700">仮予約中: <span id="temp-reserved-count" class="font-extrabold text-2xl">0</span> 席</p>
-    <p class="text-sm text-gray-600 mb-3">仮予約は10分間維持されます。</p>
-    <button id="confirm-reservation-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300">
-        予約を確定する
-    </button>
+<div id="reservation-action" class="bg-orange-50 border-2 border-orange-300 p-6 rounded-2xl shadow-xl mb-8 w-full max-w-3xl mx-auto hidden relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+    <div class="flex flex-col md:flex-row items-center justify-between">
+        <div class="mb-4 md:mb-0 text-left">
+            <p class="text-xl font-bold text-orange-800 flex items-center">
+                <svg class="h-6 w-6 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                仮予約中: <span id="temp-reserved-count" class="font-extrabold text-3xl text-orange-600 mx-2">0</span> 席
+            </p>
+            <p class="text-sm text-orange-700 mt-1 ml-8">※ 仮予約は10分間維持されます。</p>
+        </div>
+        <button id="confirm-reservation-button" class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center">
+            予約を確定する
+            <svg class="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        </button>
+    </div>
 </div>
 
-<p id="total-seats-status" class="text-lg font-medium mb-4">
-    個人予約数: <span id="reserved-count" class="font-bold text-orange-600">0</span> / <span id="max-reservation" class="font-bold text-red-600">6</span> 席
-    <span class="mx-2">|</span>
-    総確定予約: <span id="total-occupied-count" class="font-bold text-green-600">0</span> / <span id="total-capacity-count">171</span> 席
-</p>
+<div class="bg-white p-4 rounded-xl shadow-md mb-6 inline-flex items-center space-x-6">
+    <p class="text-lg font-medium text-gray-700">
+        個人予約数: <span id="reserved-count" class="font-bold text-orange-600 text-2xl">0</span> / <span id="max-reservation" class="font-bold text-gray-500">6</span> 席
+    </p>
+    <div class="h-8 w-px bg-gray-300"></div>
+    <p class="text-lg font-medium text-gray-700">
+        総確定予約: <span id="total-occupied-count" class="font-bold text-green-600 text-2xl">0</span> / <span id="total-capacity-count" class="font-bold text-gray-500">171</span> 席
+    </p>
+</div>
 
 <div class="columns">
   <div class="column" id="left-column"></div>
@@ -179,7 +208,7 @@
 </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, update, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, update, remove, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
   
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
@@ -197,8 +226,8 @@
   const seatsRef = ref(db, 'seats'); 
   
   let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
-  const currentUserEmail = currentUserDetails ? currentUserDetails.email : null; 
-  const ADMIN_EMAIL = '0116zst24115a7e8@gl.pen-kanagawa.ed.jp';
+  const currentUserEmail = currentUserDetails ? currentUserDetails.email.trim().toLowerCase() : null; 
+  const ADMIN_EMAIL = '0116zst24115a7e8@gl.pen-kanagawa.ed.jp'.toLowerCase();
   
   const MAX_RESERVATION_PER_USER = 6;
   const TEMP_RESERVATION_TTL_SECONDS = 10 * 60; 
@@ -208,24 +237,30 @@
 
   function showMessage(text, isError = false) {
       const msgBox = document.getElementById('message-box');
-      msgBox.textContent = text;
-      msgBox.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
+      msgBox.innerHTML = text; // HTMLタグを使えるように変更
+      msgBox.style.backgroundColor = isError ? 'rgba(220, 38, 38, 0.9)' : 'rgba(22, 163, 74, 0.9)'; // 少し透過
       msgBox.style.opacity = '1';
-      msgBox.style.transform = 'translateX(0)';
+      msgBox.style.transform = 'translateX(0) translateY(0)';
       setTimeout(() => {
           msgBox.style.opacity = '0';
-          msgBox.style.transform = 'translateX(100%)';
-      }, 3000);
+          msgBox.style.transform = 'translateX(100%) translateY(-20px)';
+      }, 4000);
   }
 
   function updateUserInfoDisplay() {
     const userInfoDiv = document.getElementById('user-info');
-    const isAdmin = currentUserEmail === ADMIN_EMAIL;
+    const isAdmin = (currentUserEmail === ADMIN_EMAIL);
     if (currentUserDetails && currentUserEmail) {
-        userInfoDiv.className = "mb-4 p-3 bg-blue-100 border border-blue-400 rounded-lg text-sm text-gray-700 w-full max-w-xl mx-auto";
+        userInfoDiv.className = "mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left";
         userInfoDiv.innerHTML = `
-            <p><strong class="text-blue-600">現在の予約者情報:</strong></p>
-            <p><strong>名前:</strong> ${currentUserDetails.name} / <strong>メール:</strong> ${currentUserEmail} ${isAdmin ? '<span class="text-red-500 font-bold">(管理者)</span>' : ''}</p>
+            <div class="flex items-center mb-2">
+                <svg class="h-6 w-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="font-bold text-blue-600 text-lg">現在の予約者情報</span>
+            </div>
+            <div class="ml-8">
+                <p><strong>名前:</strong> ${currentUserDetails.name}</p>
+                <p><strong>メール:</strong> ${currentUserEmail} ${isAdmin ? '<span class="bg-red-100 text-red-600 py-1 px-2 rounded-full text-xs font-bold ml-2">管理者</span>' : ''}</p>
+            </div>
         `;
         document.getElementById('admin-area').style.display = isAdmin ? 'block' : 'none';
     } else {
@@ -236,15 +271,15 @@
   
   // Firebaseリセットボタン
   document.getElementById('reset-seats-button').onclick = async () => {
-      if (confirm("🚨 Firebase上の全予約データをリセットします。本当によろしいですか？")) {
+      if (confirm("🚨 警告: Firebase上の【全予約データ】を完全に消去します。\n\n本当に実行しますか？")) {
           try {
-              await remove(seatsRef);
+              await set(seatsRef, null); 
               seatsData = {};
               renderTables();
-              showMessage("✅ 全ての席をリセットしました。");
+              showMessage("✅ データベースを空にしました。全ての席が解放されました。");
           } catch (error) {
-              console.error(error);
-              showMessage("❌ リセットに失敗しました。", true);
+              console.error("Firebase Reset Error:", error);
+              showMessage(`❌ リセット失敗:<br>${error.message}<br>(Firebaseのルールを確認してください)`, true);
           }
       }
   };
@@ -320,7 +355,11 @@
     if (isOccupied) {
         const tooltip = document.createElement("span");
         tooltip.className = "tooltip";
-        tooltip.innerText = `${seatInfo.isTemp ? '[仮]' : '[確]'} ${seatInfo.reservedByName}`;
+        // ツールチップの内容を少しリッチに
+        tooltip.innerHTML = `
+            <div class="font-bold border-b border-gray-600 pb-1 mb-1">${seatInfo.isTemp ? '⏳ 仮予約' : '✅ 確定予約'}</div>
+            <div>${seatInfo.reservedByName} 様</div>
+        `;
         seat.appendChild(tooltip);
     }
     if (!isOccupied || (isMine && seatInfo.isTemp)) seat.onclick = () => toggleSeatStatus(tableNum, seatIndex);
@@ -336,6 +375,8 @@
     const table = document.createElement("div");
     table.className = "table";
     table.innerText = `机 ${tableNum + 1}`;
+    
+    // 机29 (最後の机) はここに入り、3席が横並びになる
     const half = Math.ceil(seatCount / 2);
     for (let i = 0; i < half; i++) seatsTop.appendChild(createSeat(i, tableNum));
     block.appendChild(seatsTop);
@@ -362,11 +403,14 @@
   }
   
   onValue(seatsRef, (snapshot) => {
-    document.getElementById("loading-overlay").style.display = 'none';
+    // データ取得完了時にローディングをフェードアウト
+    const overlay = document.getElementById("loading-overlay");
+    overlay.style.opacity = '0';
+    setTimeout(() => { overlay.style.display = 'none'; }, 300);
+
     seatsData = snapshot.val() || {};
     renderTables(); 
   });
 </script>
 </body>
 </html>
-
