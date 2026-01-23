@@ -6,9 +6,9 @@
   <title>予約情報入力 - 王の食堂</title>
   <style>
     body {
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      background-color: #f4f1ea; /* 優しいベージュ */
-      background-image: radial-gradient(#e0d8c8 1px, transparent 1px); /* ほんのりドット柄 */
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f4f1ea;
+      background-image: radial-gradient(#e0d8c8 1px, transparent 1px);
       background-size: 20px 20px;
       padding: 20px;
       margin: 0;
@@ -18,12 +18,7 @@
       align-items: center;
       color: #5d4037;
     }
-
-    .container {
-        width: 100%;
-        max-width: 450px;
-    }
-
+    .container { width: 100%; max-width: 450px; }
     form {
       background: #ffffff;
       padding: 2.5rem;
@@ -31,156 +26,71 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
       text-align: center;
     }
-
-    h1 {
-      color: #5d4037;
-      font-size: 1.8rem;
-      margin-bottom: 2rem;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-    }
-    h1 span { color: #ff7043; } /* アクセントカラー */
-
-    .input-group {
-        text-align: left;
-        margin-bottom: 1.5rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-      font-size: 0.95rem;
-      color: #795548;
-    }
-
+    h1 { color: #5d4037; font-size: 1.8rem; margin-bottom: 2rem; font-weight: 800; }
+    h1 span { color: #ff7043; }
+    .input-group { text-align: left; margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #795548; }
     input[type="text"], input[type="email"] {
-      width: 100%;
-      padding: 0.8rem 1rem;
-      font-size: 1rem;
-      border: 2px solid #efebe9;
-      border-radius: 10px;
-      box-sizing: border-box;
-      transition: border-color 0.3s, box-shadow 0.3s;
-      background-color: #fafafa;
+      width: 100%; padding: 0.8rem 1rem; font-size: 1rem;
+      border: 2px solid #efebe9; border-radius: 10px; box-sizing: border-box;
+      background-color: #fafafa; transition: 0.3s;
     }
-    input:focus {
-        outline: none;
-        border-color: #ff7043;
-        box-shadow: 0 0 0 3px rgba(255, 112, 67, 0.2);
-        background-color: #fff;
-    }
-
+    input:focus { outline: none; border-color: #ff7043; background-color: #fff; }
+    .domain-note { font-size: 0.8rem; color: #e53935; margin-top: 0.5rem; font-weight: bold; }
     input[type="submit"] {
       background: linear-gradient(to right, #ff7043, #ff8a65);
-      color: white;
-      padding: 1rem;
-      border: none;
-      border-radius: 50px;
-      margin-top: 1rem;
-      cursor: pointer;
-      width: 100%;
-      font-size: 1.1rem;
-      font-weight: bold;
-      letter-spacing: 0.05em;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 10px rgba(255, 112, 67, 0.3);
+      color: white; padding: 1rem; border: none; border-radius: 50px;
+      margin-top: 1rem; cursor: pointer; width: 100%;
+      font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 112, 67, 0.3);
     }
-
-    input[type="submit"]:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(255, 112, 67, 0.4);
-    }
-    input[type="submit"]:active {
-      transform: translateY(0);
-    }
-
-    .back-button {
-        display: inline-block;
-        margin-top: 1.5rem;
-        color: #9e9e9e;
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: color 0.3s;
-        border-bottom: 1px dotted #9e9e9e;
-    }
-    .back-button:hover {
-        color: #795548;
-        border-bottom-style: solid;
-    }
-
-    #message-box {
-        display: none; margin-top: 1.5rem; padding: 1rem; border-radius: 10px; color: white; font-weight: bold;
-    }
+    input[type="submit"]:hover { transform: translateY(-2px); }
+    #message-box { display: none; margin-top: 1.5rem; padding: 1rem; border-radius: 10px; color: white; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
       <form id="reservation-form">
         <h1>王の食堂<br><span>予約情報入力</span></h1>
-        
         <div class="input-group">
             <label for="name">お名前</label>
-            <input type="text" id="name" required placeholder="例：山田 太郎">
+            <input type="text" id="name" required placeholder="例：県立 太郎">
         </div>
-
         <div class="input-group">
             <label for="email">メールアドレス</label>
-            <input type="email" id="email" required placeholder="例：taro@example.com">
+            <input type="email" id="email" required placeholder="example@gl.pen-kanagawa.ed.jp">
+            <p class="domain-note">※ @gl.pen-kanagawa.ed.jp のみ使用可能です</p>
         </div>
-
         <div id="message-box"></div>
-
         <input type="submit" value="保存して席を選択する">
         <br>
-        <a href="index.html" class="back-button">席マップに戻る</a>
+        <a href="index.html" style="display:inline-block; margin-top:1rem; color:#9e9e9e; font-size:0.9rem;">席マップに戻る</a>
       </form>
   </div>
-  
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('reservation-form');
-        const messageBox = document.getElementById('message-box');
-        
-        const existingDetails = JSON.parse(localStorage.getItem('currentUserDetails') || '{}');
-        if (existingDetails.name) document.getElementById('name').value = existingDetails.name;
-        if (existingDetails.email) document.getElementById('email').value = existingDetails.email;
-        
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            
-            if (!name || !email) {
-                showMessage('すべての項目を入力してください。', true);
-                return;
-            }
-            
-            // 簡易的なメールアドレスチェック
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showMessage('正しいメールアドレスの形式で入力してください。', true);
-                return;
-            }
-            
-            const userDetails = { name, email };
-            localStorage.setItem('currentUserDetails', JSON.stringify(userDetails));
-            
-            showMessage('情報を保存しました。席選択ページへ移動します...', false);
-            
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        });
+    const ALLOWED_DOMAIN = "@gl.pen-kanagawa.ed.jp";
+    const form = document.getElementById('reservation-form');
+    const messageBox = document.getElementById('message-box');
 
-        function showMessage(text, isError) {
-            messageBox.textContent = text;
-            messageBox.style.backgroundColor = isError ? '#ef5350' : '#66bb6a';
-            messageBox.style.display = 'block';
-            messageBox.classList.add('shake'); // エラー時に揺らすアニメーションなどを入れても良い
-             setTimeout(() => { messageBox.style.display = 'none'; }, 3000);
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim().toLowerCase();
+        
+        if (!email.endsWith(ALLOWED_DOMAIN)) {
+            showMessage(`エラー: ${ALLOWED_DOMAIN} のアドレスを使用してください。`, true);
+            return;
         }
+        
+        localStorage.setItem('currentUserDetails', JSON.stringify({ name, email }));
+        showMessage('認証成功。移動します...', false);
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
     });
+
+    function showMessage(text, isError) {
+        messageBox.textContent = text;
+        messageBox.style.backgroundColor = isError ? '#ef5350' : '#66bb6a';
+        messageBox.style.display = 'block';
+    }
   </script>
 </body>
 </html>
