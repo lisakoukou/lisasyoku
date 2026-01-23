@@ -2,136 +2,45 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=1200" /> <title>王の食堂 予約システム</title>
+  <meta name="viewport" content="width=1200" />
+  <title>王の食堂 予約システム</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      padding: 20px;
-      text-align: center;
-      background-color: #f4f1ea;
-      min-height: 100vh;
-      min-width: 1000px;
-      color: #4a4a4a;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      padding: 20px; text-align: center; background-color: #f4f1ea;
+      min-height: 100vh; min-width: 1000px; color: #4a4a4a;
     }
-    h1 { color: #5d4037; }
-    .columns {
-      display: flex;
-      flex-wrap: nowrap;
-      justify-content: center;
-      gap: 30px;
-      padding-bottom: 120px; /* ツールチップ用の余白 */
-      overflow-x: auto;
-    }
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-      min-width: 280px; 
-    }
+    .columns { display: flex; justify-content: center; gap: 30px; padding-bottom: 120px; }
+    .column { display: flex; flex-direction: column; gap: 30px; min-width: 280px; }
     .table-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 15px;
-      border-radius: 16px;
-      background-color: #ffffff;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      padding: 20px 15px; border-radius: 16px; background-color: #ffffff;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     }
-    .seat-row {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
+    .seat-row { display: flex; gap: 10px; justify-content: center; }
     .seat {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background-color: #37474f;
-      color: #ffffff;
-      font-weight: bold;
-      font-size: 14px;
-      line-height: 38px;
-      text-align: center;
-      user-select: none;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      position: relative;
+      width: 38px; height: 38px; border-radius: 50%; background-color: #37474f;
+      color: #ffffff; font-weight: bold; font-size: 14px; line-height: 38px;
+      text-align: center; user-select: none; transition: 0.2s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); position: relative;
     }
-    /* ホバーアニメーション（操作可能な席のみ） */
-    .seat.clickable:hover {
-        transform: translateY(-2px);
-        filter: brightness(1.1);
-    }
-    /* 確定済み（緑/水色） */
-    .seat.occupied { background-color: #66bb6a; color: white; }
-    /* 自分の仮予約（オレンジ） */
-    .seat.mine-temp {
-        background-color: #ffa726;
-        color: white;
-        border: 2px solid #e65100;
-        box-shadow: 0 0 10px rgba(255, 167, 38, 0.5);
-    }
-    /* 他人の仮予約（薄オレンジ） */
-    .seat.temp-reserved {
-        background-color: #ffcc80;
-        color: #5d4037;
-        opacity: 0.8;
-    }
-    /* 自分の確定（水色） */
-    .seat.mine-final {
-        background-color: #29b6f6;
-        color: white;
-        box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
-    }
+    .seat.clickable:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .seat.occupied { background-color: #66bb6a; }
+    .seat.mine-temp { background-color: #ffa726; border: 2px solid #e65100; }
+    .seat.temp-reserved { background-color: #ffcc80; color: #5d4037; opacity: 0.8; }
+    .seat.mine-final { background-color: #29b6f6; }
     .table {
-      width: 130px;
-      height: 40px;
-      background-color: #d7ccc8;
-      border-radius: 6px;
-      line-height: 40px;
-      font-weight: bold;
-      color: #5d4037;
-      user-select: none;
-      margin-top: 5px;
+      width: 130px; height: 40px; background-color: #d7ccc8; border-radius: 6px;
+      line-height: 40px; font-weight: bold; color: #5d4037; margin-top: 5px;
     }
-    /* ツールチップ設定：席の下側に表示 */
     .tooltip {
-        visibility: hidden;
-        background-color: rgba(33, 33, 33, 0.95);
-        color: #fff;
-        text-align: center;
-        border-radius: 8px;
-        padding: 8px 12px;
-        position: absolute;
-        z-index: 50;
-        top: 125%; 
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-        opacity: 0;
-        transition: opacity 0.3s, top 0.3s;
-        font-size: 13px;
-        line-height: 1.4;
-        pointer-events: none;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        visibility: hidden; background-color: rgba(33, 33, 33, 0.95); color: #fff;
+        border-radius: 8px; padding: 8px 12px; position: absolute; z-index: 100;
+        top: 125%; left: 50%; transform: translateX(-50%); white-space: nowrap;
+        opacity: 0; transition: 0.3s; font-size: 13px; pointer-events: none;
     }
-    .seat:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
-        top: 115%;
-    }
-    .tooltip::after {
-        content: "";
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        margin-left: -6px;
-        border-width: 6px;
-        border-style: solid;
-        border-color: transparent transparent rgba(33, 33, 33, 0.95) transparent;
-    }
+    .seat:hover .tooltip { visibility: visible; opacity: 1; top: 115%; }
   </style>
 </head>
 <body class="bg-gray-50 flex flex-col items-center p-4">
@@ -141,37 +50,34 @@
     <p class="mt-4 text-lg text-orange-600 font-semibold">食堂に接続中...</p>
 </div>
 
-<div id="message-box" class="fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl text-white transition-all duration-500 transform translate-x-full opacity-0 font-bold" style="min-width: 300px;"></div>
+<div id="message-box" class="fixed top-6 right-6 z-50 p-4 rounded-xl shadow-2xl text-white transition-all transform translate-x-full opacity-0 font-bold" style="min-width: 300px;"></div>
 
-<h1 class="text-4xl font-extrabold text-gray-800 mb-8 tracking-tight">🍛 食堂座席予約</h1>
+<h1 class="text-4xl font-extrabold text-gray-800 mb-8">🍛 食堂座席予約</h1>
 
-<a href="yoyaku.html" class="group relative inline-flex items-center justify-start overflow-hidden rounded-full px-8 py-3 bg-orange-500 font-bold text-white transition-all duration-300 ease-out hover:bg-orange-600 shadow-md mb-6">
-  <span class="transition-transform duration-300 ease-out group-hover:-translate-x-1">予約者情報を入力・変更する (必須)</span>
+<a href="yoyaku.html" class="px-8 py-3 bg-orange-500 font-bold text-white rounded-full hover:bg-orange-600 shadow-md mb-6">
+  予約者情報を入力・変更する (必須)
 </a>
 
-<div id="user-info" class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left">
-    <p>予約情報がありません。<a href="yoyaku.html" class="text-blue-600 underline font-bold">こちら</a>で情報を入力してください。</p>
-</div>
+<div id="user-info" class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm w-full max-w-2xl mx-auto text-left"></div>
 
 <div id="admin-area" class="mb-6 w-full max-w-2xl mx-auto hidden text-right">
-    <button id="reset-seats-button" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300">
-        🚨 管理者: 全席リセット (Firebase)
-    </button>
+    <button id="reset-seats-button" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded-full">🚨 管理者: 全席リセット</button>
 </div>
 
 <div id="reservation-action" class="bg-orange-50 border-2 border-orange-300 p-6 rounded-2xl shadow-xl mb-8 w-full max-w-3xl mx-auto hidden">
     <div class="flex flex-col md:flex-row items-center justify-between">
-        <p class="text-xl font-bold text-orange-800">仮予約中: <span id="temp-reserved-count" class="text-3xl text-orange-600 mx-2">0</span> 席</p>
-        <button id="confirm-reservation-button" class="bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition-all">
-            予約を確定する
-        </button>
+        <div>
+            <p class="text-xl font-bold text-orange-800">仮予約中: <span id="temp-reserved-count" class="text-3xl text-orange-600 mx-2">0</span> 席</p>
+            <p class="text-xs text-orange-600 font-bold mt-1">※ 10分以内に確定しないと自動解除されます</p>
+        </div>
+        <button id="confirm-reservation-button" class="bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition-all">予約を確定する</button>
     </div>
 </div>
 
 <div class="bg-white p-4 rounded-xl shadow-md mb-6 inline-flex items-center space-x-6">
-    <p class="text-lg font-medium">個人予約数: <span id="reserved-count" class="font-bold text-orange-600 text-2xl">0</span> / 6 席</p>
+    <p>個人予約数: <span id="reserved-count" class="font-bold text-orange-600 text-2xl">0</span> / 6</p>
     <div class="h-8 w-px bg-gray-300"></div>
-    <p class="text-lg font-medium">総確定予約: <span id="total-occupied-count" class="font-bold text-green-600 text-2xl">0</span> / 171 席</p>
+    <p>総確定予約: <span id="total-occupied-count" class="font-bold text-green-600 text-2xl">0</span> / 171</p>
 </div>
 
 <div class="columns">
@@ -181,7 +87,7 @@
 </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  import { getDatabase, ref, onValue, runTransaction, serverTimestamp, set, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
   
   const firebaseConfig = {
     apiKey: "AIzaSyAPh0iGqnlJDPakQDTrpStt7_WV1gaVvBs",
@@ -190,85 +96,80 @@
     projectId: "lisasyokudo",
     storageBucket: "lisasyokudo.firebasestorage.app",
     messagingSenderId: "94391681633",
-    appId: "1:94391681633:web:515d6d17c9567e153b2020",
-    measurementId: "G-HBNXQBQ4PR"
+    appId: "1:94391681633:web:515d6d17c9567e153b2020"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const seatsRef = ref(db, 'seats'); 
-  
+  const TEMP_LIMIT_MS = 10 * 60 * 1000; // 10分をミリ秒に変換
+
   let currentUserDetails = JSON.parse(localStorage.getItem('currentUserDetails') || 'null');
   const currentUserEmail = currentUserDetails ? currentUserDetails.email.trim().toLowerCase() : null; 
   const ADMIN_EMAIL = '0116zst24115a7e8@gl.pen-kanagawa.ed.jp'.toLowerCase();
-  
   let seatsData = {};
+
+  // --- 自動解除ロジック ---
+  function cleanupExpiredReservations() {
+      const now = Date.now();
+      Object.keys(seatsData).forEach(key => {
+          const info = seatsData[key];
+          if (info.isTemp && info.timestamp) {
+              const elapsed = now - info.timestamp;
+              if (elapsed > TEMP_LIMIT_MS) {
+                  remove(ref(db, `seats/${key}`)); // 10分超えたら削除
+              }
+          }
+      });
+  }
 
   function showMessage(text, isError = false) {
       const msgBox = document.getElementById('message-box');
       msgBox.innerHTML = text;
-      msgBox.style.backgroundColor = isError ? 'rgba(220, 38, 38, 0.9)' : 'rgba(22, 163, 74, 0.9)';
-      msgBox.style.opacity = '1';
-      msgBox.style.transform = 'translateX(0)';
+      msgBox.style.backgroundColor = isError ? '#dc2626' : '#16a34a';
+      msgBox.style.opacity = '1'; msgBox.style.transform = 'translateX(0)';
       setTimeout(() => { msgBox.style.opacity = '0'; msgBox.style.transform = 'translateX(100%)'; }, 4000);
   }
 
   function updateUserInfoDisplay() {
     const userInfoDiv = document.getElementById('user-info');
-    const isAdmin = (currentUserEmail === ADMIN_EMAIL);
-    if (currentUserDetails && currentUserEmail) {
-        userInfoDiv.className = "mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm text-sm text-gray-700 w-full max-w-2xl mx-auto text-left";
-        userInfoDiv.innerHTML = `<div><p class="font-bold text-blue-600">現在の予約者情報</p><p>${currentUserDetails.name} (${currentUserEmail}) ${isAdmin ? '<span class="text-red-500 font-bold ml-2">[管理者]</span>' : ''}</p></div>`;
-        document.getElementById('admin-area').style.display = isAdmin ? 'block' : 'none';
+    if (currentUserDetails) {
+        userInfoDiv.innerHTML = `<p class="font-bold text-blue-600">予約者情報</p><p>${currentUserDetails.name} (${currentUserEmail})</p>`;
+        if (currentUserEmail === ADMIN_EMAIL) document.getElementById('admin-area').style.display = 'block';
+    } else {
+        userInfoDiv.innerHTML = `<p>情報がありません。<a href="yoyaku.html" class="text-blue-600 underline">こちら</a>で入力してください。</p>`;
     }
   }
-  updateUserInfoDisplay();
-  
+
   document.getElementById('reset-seats-button').onclick = async () => {
-      if (confirm("🚨 全予約データをリセットします。本当によろしいですか？")) {
-          try {
-              await set(seatsRef, null);
-              showMessage("✅ 全データをリセットしました。");
-          } catch (e) { showMessage("❌ リセット失敗: " + e.message, true); }
+      if (confirm("全データをリセットします。よろしいですか？")) {
+          await set(seatsRef, null);
+          showMessage("✅ 全データを消去しました。");
       }
   };
 
   const tableCounts = [7, 10, 12];
-  const totalTables = 29; 
+  const totalTables = 29;
   const seatCounts = Array.from({ length: totalTables }, (_, i) => i === 28 ? 3 : 6);
-
-  function getSeatKey(tableNum, seatIndex) { return `T${tableNum + 1}-S${seatIndex + 1}`; }
 
   function toggleSeatStatus(tableNum, seatIndex) {
     if (!currentUserEmail) { showMessage("🚨 予約情報を入力してください。", true); return; }
-    
-    const seatKey = getSeatKey(tableNum, seatIndex);
+    const seatKey = `T${tableNum + 1}-S${seatIndex + 1}`;
     const seatRef = ref(db, 'seats/' + seatKey);
 
     runTransaction(seatRef, (current) => {
-      // 他人の席は触れない
       if (current && current.isOccupied && current.reservedByEmail !== currentUserEmail) return;
+      if (current && current.isOccupied && current.isTemp === false) return; // 確定済みは解除不可
+      if (current && current.isTemp === true) return null; // 自分の仮予約は解除可能
 
-      // 【修正】確定済みの自分の席は、タップしても何もしない（解除させない）
-      if (current && current.isOccupied && current.reservedByEmail === currentUserEmail && current.isTemp === false) {
-          return; 
-      }
-
-      // 自分の「仮予約」ならタップで解除可能
-      if (current && current.isOccupied && current.reservedByEmail === currentUserEmail && current.isTemp === true) {
-          return null; 
-      }
-
-      // 空席を予約する場合
-      const mySeatsCount = Object.values(seatsData).filter(s => s.reservedByEmail === currentUserEmail).length;
-      if (!current && mySeatsCount >= 6) return;
-      
+      const myCount = Object.values(seatsData).filter(s => s.reservedByEmail === currentUserEmail).length;
+      if (!current && myCount >= 6) return;
       return { isOccupied: true, isTemp: true, reservedByEmail: currentUserEmail, reservedByName: currentUserDetails.name, timestamp: serverTimestamp() };
     });
   }
 
   function createSeat(seatIndex, tableNum) {
-    const seatKey = getSeatKey(tableNum, seatIndex);
+    const seatKey = `T${tableNum + 1}-S${seatIndex + 1}`;
     const info = seatsData[seatKey];
     const isOccupied = info && info.isOccupied;
     const isMine = isOccupied && info.reservedByEmail === currentUserEmail;
@@ -276,24 +177,20 @@
     const div = document.createElement("div");
     div.className = "seat";
     div.innerText = seatIndex + 1;
-
     if (isMine) div.classList.add("occupied", info.isTemp ? "mine-temp" : "mine-final");
     else if (isOccupied) div.classList.add(info.isTemp ? "temp-reserved" : "occupied");
 
-    // 操作可能な席（空席 or 自分の仮予約）のみクリック可能にする
     const canClick = !isOccupied || (isMine && info.isTemp === true);
     if (canClick) {
         div.onclick = () => toggleSeatStatus(tableNum, seatIndex);
         div.classList.add("clickable");
         div.style.cursor = "pointer";
-    } else {
-        div.style.cursor = "not-allowed";
-    }
+    } else { div.style.cursor = "not-allowed"; }
 
     if (isOccupied) {
         const tip = document.createElement("span");
         tip.className = "tooltip";
-        tip.innerHTML = `<strong>${info.isTemp ? '⏳仮予約' : '✅確定'}</strong><br>${info.reservedByName}`;
+        tip.innerHTML = `<strong>${info.isTemp ? '⏳仮' : '✅確'}</strong> ${info.reservedByName}`;
         div.appendChild(tip);
     }
     return div;
@@ -302,18 +199,17 @@
   function createTableBlock(tableNum) {
     const block = document.createElement("div");
     block.className = "table-block";
-    const seatCount = seatCounts[tableNum];
     const seatsTop = document.createElement("div");
     seatsTop.className = "seat-row";
     const tableDiv = document.createElement("div");
     tableDiv.className = "table";
     tableDiv.innerText = `机 ${tableNum + 1}`;
 
-    if (tableNum === 28) { // 机29の特殊レイアウト（上3、下なし）
+    if (tableNum === 28) { // 机29の特殊レイアウト
         for (let i = 0; i < 3; i++) seatsTop.appendChild(createSeat(i, tableNum));
         block.appendChild(seatsTop);
         block.appendChild(tableDiv);
-    } else { // 通常（上3、下3）
+    } else {
         for (let i = 0; i < 3; i++) seatsTop.appendChild(createSeat(i, tableNum));
         block.appendChild(seatsTop);
         block.appendChild(tableDiv);
@@ -335,23 +231,27 @@
     const all = Object.values(seatsData);
     document.getElementById("reserved-count").textContent = all.filter(s => s.reservedByEmail === currentUserEmail).length;
     document.getElementById("total-occupied-count").textContent = all.filter(s => !s.isTemp).length;
-    const tempKeys = Object.keys(seatsData).filter(k => seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp);
-    document.getElementById('reservation-action').style.display = tempKeys.length > 0 ? 'block' : 'none';
-    document.getElementById("temp-reserved-count").textContent = tempKeys.length;
+    const temps = Object.keys(seatsData).filter(k => seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp);
+    document.getElementById('reservation-action').style.display = temps.length > 0 ? 'block' : 'none';
+    document.getElementById("temp-reserved-count").textContent = temps.length;
   }
+
+  onValue(seatsRef, (snap) => {
+    document.getElementById("loading-overlay").style.display = 'none';
+    seatsData = snap.val() || {};
+    cleanupExpiredReservations(); // データ更新のたびに期限切れをチェック
+    render();
+  });
+
+  // 1分ごとに自動解除チェックを走らせる
+  setInterval(cleanupExpiredReservations, 60000);
 
   document.getElementById('confirm-reservation-button').onclick = () => {
       const temps = Object.keys(seatsData).filter(k => seatsData[k].reservedByEmail === currentUserEmail && seatsData[k].isTemp);
       localStorage.setItem('finalizingReservationSeats', JSON.stringify(temps));
       window.location.href = `yoyakukannryou.html?name=${encodeURIComponent(currentUserDetails.name)}&email=${encodeURIComponent(currentUserEmail)}&people=${temps.length}`;
   };
-
-  onValue(seatsRef, (snap) => {
-    document.getElementById("loading-overlay").style.opacity = '0';
-    setTimeout(() => document.getElementById("loading-overlay").style.display = 'none', 300);
-    seatsData = snap.val() || {};
-    render();
-  });
+  updateUserInfoDisplay();
 </script>
 </body>
 </html>
